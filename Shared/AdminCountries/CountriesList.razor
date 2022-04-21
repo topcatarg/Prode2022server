@@ -1,0 +1,36 @@
+@using Models
+@using MudBlazor
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+
+<MudTable Items="@CountryArray" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@Loading" LoadingProgressColor="Color.Info">
+    <HeaderContent>
+        <MudTh>ID</MudTh>
+        <MudTh>Pais</MudTh>
+        <MudTh>Codigo bandera</MudTh>
+        <MudTh>Bandera</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="ID">@context.ID</MudTd>
+        <MudTd DataLabel="Pais">@context.Team</MudTd>
+        <MudTd DataLabel="Codigo bandera">@context.Code</MudTd>
+        <MudTd DataLabel="Bandera">
+            <MudImage Elevation="25" Class="rounded-lg" Src="@($"Images/{@context.Code}.png")"/>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code
+{
+        List<Country> CountryArray = new();
+        bool Loading = true;
+
+        public async Task LoadCountries()
+        {
+            Loading = true;
+            CountryArray = await HttpClient.GetFromJsonAsync<List<Country>>(NavigationManager.BaseUri + "DataAdmin/AllCountries");
+            Loading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+        
+}

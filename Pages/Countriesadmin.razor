@@ -1,0 +1,36 @@
+@page "/countriesadmin"
+
+@using MudBlazor
+@using Prode2022Server.Models
+@using Prode2022Server.Shared.AdminCountries
+
+<h1 class="ma-4">Administrar Paises</h1>
+
+<AddCountry onclick="AddCountryClick"/>
+
+<CountriesList @ref="countrieslist"/>
+
+@code
+{
+
+    CountriesList? countrieslist;
+
+    protected override async Task OnAfterRenderAsync(bool FirstRender)
+    {
+        if (FirstRender)
+        {
+            await countrieslist.LoadCountries();
+        }
+    }
+
+    public async void AddCountryClick()
+    {
+        //refresh country list
+        await countrieslist.LoadCountries();
+    }
+
+    
+
+    
+}
+

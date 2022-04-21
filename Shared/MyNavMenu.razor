@@ -1,0 +1,13 @@
+@using MudBlazor
+
+<MudNavMenu>
+    <MudNavLink Href="/" Match="NavLinkMatch.All">Resultados</MudNavLink>
+    <MudNavLink Href="/Pronosticos" Match="NavLinkMatch.All">Pronosticos</MudNavLink>
+    <MudNavLink Href="/Posiciones" Match="NavLinkMatch.All">Posiciones</MudNavLink>
+    <MudNavLink Href="/Datos" Match="NavLinkMatch.All">Tus datos</MudNavLink>
+    <MudNavGroup Title="Administracion" Expanded="false">
+        <MudNavLink Href="/Countriesadmin">Administrar paises</MudNavLink>
+    </MudNavGroup>
+    <MudNavLink Href="/Reglamento" Match="NavLinkMatch.All">Reglamento</MudNavLink>
+    <MudNavLink Href="/Sobre"  Match="NavLinkMatch.Prefix">Sobre esto...</MudNavLink>
+</MudNavMenu>
