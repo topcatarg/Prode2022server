@@ -8,7 +8,7 @@ namespace Prode2022Server.Services
 
         public static string DbFile
         {
-            get { return Environment.CurrentDirectory + "\\prode2022.sqlite"; }
+            get { return Environment.CurrentDirectory + "\\Database\\prode2022.sqlite"; }
         }
 
         public SqliteConnection SimpleDbConnection()

@@ -1,41 +1,59 @@
 @using Models
 @using MudBlazor
+@using System.ComponentModel.DataAnnotations
 
-<MudPaper Class="pa-2 ma-2" Outlined="true">
-    <MudTextField @bind-Value="ActiveCountry.Team" Label="Pais" Variant="Variant.Text"></MudTextField>
-    <MudTextField @bind-Value="ActiveCountry.Code" Label="Codigo" Variant="Variant.Text"></MudTextField>
-    <MudButton 
-        Variant="Variant.Filled" 
-        Color="Color.Primary" 
-        Disabled="@ButtonDisabled" 
-        OnClick="Add"
-        Class="ma-2">
-        @if (ButtonDisabled)
-        {
-            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
-            <MudText Class="ms-2">Procesando</MudText>
-        }
-        else
-        {
-            <MudText>Agregar</MudText>
-        }   
-    </MudButton>
-</MudPaper>
-
+<EditForm Model="@ActiveCountry" OnValidSubmit="DataValidated">
+    <DataAnnotationsValidator />
+    <MudPaper Class="pa-2 ma-2" Outlined="true">
+        <MudTextField 
+            @bind-Value="ActiveCountry.Team" 
+            Label="Pais" 
+            Variant="Variant.Text" 
+            For="@(() => ActiveCountry.Team)"/>
+        <MudTextField 
+            @bind-Value="ActiveCountry.Code" 
+            Label="Codigo" 
+            Variant="Variant.Text"
+            For="@(() => ActiveCountry.Code)"></MudTextField>
+        <MudButton 
+            ButtonType="ButtonType.Submit"
+            Variant="Variant.Filled" 
+            Color="Color.Primary" 
+            Disabled="@ButtonDisabled" 
+            Class="ma-2">
+            @if (ButtonDisabled)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                <MudText Class="ms-2">Procesando</MudText>
+            }
+            else
+            {
+                <MudText>Agregar</MudText>
+            }   
+        </MudButton>
+    </MudPaper>
+</EditForm>
+   
 @code
 {
 
     [Parameter] 
     public EventCallback<string> onclick { get; set; }
     bool ButtonDisabled = false;
-
     Country ActiveCountry = new();
     public async Task Add()
     {
         ButtonDisabled = true;
         //await HttpClient.PostAsJsonAsync<Country>(NavigationManager.BaseUri + "DataAdmin/AddCountry",ActiveCountry);
         await Task.Delay(2000);
+        ActiveCountry = new();
+        StateHasChanged();
         await onclick.InvokeAsync();
         ButtonDisabled = false;
+    }
+
+    public async Task DataValidated()
+    {
+        await Add();
     }
 }
