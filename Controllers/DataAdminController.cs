@@ -25,13 +25,31 @@ namespace Prode2022Server.Controllers
             return await dataadminservice.GetAllCountries();
         }
 
-        [Route("AddCountry")]
+        [Route("UpSert")]
         [HttpPost]
-        public async Task<ActionResult> AddCountry(Country country)
+        public async Task<ActionResult> UpSert(Country country)
         {
+            if (country == null
+                || country.Team == ""
+                || country.Code == "")
+            {
+                return new BadRequestResult();
+            }
             //validate country
-            bool result = await dataadminservice.AddCountry(country);
+            bool result = await dataadminservice.UpSert(country);
             
+            return result?new OkResult() : new BadRequestResult();
+        }
+
+        [Route("Delete")]
+        [HttpPost]
+        public async Task<ActionResult> Delete(Country country)
+        {
+            if (country == null)
+            {
+                return new BadRequestResult();
+            }
+            bool result = await dataadminservice.Delete(country);
             return result?new OkResult() : new BadRequestResult();
         }
     }

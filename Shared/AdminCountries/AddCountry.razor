@@ -1,6 +1,10 @@
 @using Models
 @using MudBlazor
 @using System.ComponentModel.DataAnnotations
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject CountriesListNotifier CountriesListNotifier
+@inject ISnackbar Snackbar
 
 <EditForm Model="@ActiveCountry" OnValidSubmit="DataValidated">
     <DataAnnotationsValidator />
@@ -28,7 +32,7 @@
             }
             else
             {
-                <MudText>Agregar</MudText>
+                <MudText>@ButtonText</MudText>
             }   
         </MudButton>
     </MudPaper>
@@ -41,12 +45,22 @@
     public EventCallback<string> onclick { get; set; }
     bool ButtonDisabled = false;
     Country ActiveCountry = new();
+    String ButtonText = "Agregar";
     public async Task Add()
     {
         ButtonDisabled = true;
-        //await HttpClient.PostAsJsonAsync<Country>(NavigationManager.BaseUri + "DataAdmin/AddCountry",ActiveCountry);
-        await Task.Delay(2000);
+        var response = await HttpClient.PostAsJsonAsync<Country>(NavigationManager.BaseUri + "DataAdmin/UpSert",ActiveCountry);
+        if (!response.IsSuccessStatusCode)
+        {
+            Snackbar.Add("No se agrego el registro",Severity.Error);
+        }
+        else
+        {
+            Snackbar.Add("Registro agregado",Severity.Info);
+        }
+        //await Task.Delay(2000);
         ActiveCountry = new();
+        ButtonText = "Agregar";
         StateHasChanged();
         await onclick.InvokeAsync();
         ButtonDisabled = false;
@@ -55,5 +69,33 @@
     public async Task DataValidated()
     {
         await Add();
+    }
+
+    public async Task OnNotify()
+    {
+        if (CountriesListNotifier.country != null)
+        {
+            ActiveCountry = CountriesListNotifier.country;
+            ButtonText = "Actualizar";
+        }
+        else
+        {
+            ActiveCountry = new();
+            ButtonText = "Agregar";
+        }
+        await InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+    protected override void OnInitialized()
+    {
+        CountriesListNotifier.Notify += OnNotify;
+    }
+
+
+    public void Dispose()
+    {
+        CountriesListNotifier.Notify -= OnNotify;
     }
 }

@@ -2,8 +2,16 @@
 @using MudBlazor
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
+@inject CountriesListNotifier CountriesListNotifier
+@inject ISnackbar Snackbar
 
-<MudTable Items="@CountryArray" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@Loading" LoadingProgressColor="Color.Info">
+<MudTable Items="@CountryList" Hover="true" Breakpoint="Breakpoint.Sm" 
+    Loading="@Loading" 
+    LoadingProgressColor="Color.Info"
+    RowClassFunc="@SelectedRowClassFunc"
+    OnRowClick="RowClickEvent"
+    T="Country"
+    @ref="CountryTable">
     <HeaderContent>
         <MudTh>ID</MudTh>
         <MudTh>Pais</MudTh>
@@ -17,20 +25,94 @@
         <MudTd DataLabel="Bandera">
             <MudImage Elevation="25" Class="rounded-lg" Src="@($"Images/{@context.Code}.png")"/>
         </MudTd>
+        <MudTd >
+            <MudIconButton 
+                Icon="@Icons.Material.Filled.Delete" 
+                aria-label="delete"
+                OnClick="() => DeleteRow(context)" />
+        </MudTd>
     </RowTemplate>
 </MudTable>
 
+<style>
+    .selected {
+    background-color: #1E88E5 !important;
+}
+
+    .selected > td {
+        color: white !important;
+    }
+
+        .selected > td .mud-input {
+            color: white !important;
+        }
+</style>
+
 @code
 {
-        List<Country> CountryArray = new();
+        List<Country> CountryList = new();
         bool Loading = true;
-
+        private MudTable<Country>? CountryTable;
+        int selectedId = -1;
         public async Task LoadCountries()
         {
             Loading = true;
-            CountryArray = await HttpClient.GetFromJsonAsync<List<Country>>(NavigationManager.BaseUri + "DataAdmin/AllCountries");
+            //var result = await HttpClient.GetFromJsonAsync<List<Country>>(NavigationManager.BaseUri + "DataAdmin/AllCountries");
+            //CountryArray = result!=null?result:new();
+            CountryList = await HttpClient.GetFromJsonAsync<List<Country>>(NavigationManager.BaseUri + "DataAdmin/AllCountries")??new();
             Loading = false;
             await InvokeAsync(StateHasChanged);
+        }
+
+        private async void RowClickEvent(TableRowClickEventArgs<Country> tableRowClickEventArgs)
+        {
+            Country selectedRow; 
+            
+            if (CountryTable != null && CountryTable.SelectedItem != null)
+            {
+                selectedRow = tableRowClickEventArgs.Item;
+                if(selectedId == selectedRow.ID)
+                {
+                    //clicked on the same, deselect
+                    await CountriesListNotifier.ChangeRow(null);
+                }
+                else
+                {
+                    await CountriesListNotifier.ChangeRow(tableRowClickEventArgs.Item);
+                }
+            }
+        }
+        private string SelectedRowClassFunc(Country element, int rowNumber)
+        {
+            if (selectedId == element.ID)
+            {
+                selectedId = -1;
+
+                return string.Empty;
+            }
+            else if (CountryTable!.SelectedItem != null && CountryTable.SelectedItem.Equals(element))
+            {
+                selectedId = element.ID;
+                return "selected";
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+
+        private async void DeleteRow(Country c)
+        {
+            var response = await HttpClient.PostAsJsonAsync<Country>(NavigationManager.BaseUri + "DataAdmin/Delete",c);
+            if (!response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("No se elimino la fila",Severity.Error);
+            }
+            else
+            {
+                Snackbar.Add("Fila eliminada correctamente",Severity.Info);
+            }
+            await LoadCountries();
         }
         
 }

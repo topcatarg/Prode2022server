@@ -19,14 +19,16 @@
     {
         if (FirstRender)
         {
-            await countrieslist.LoadCountries();
+            if (countrieslist != null)
+                await countrieslist.LoadCountries();
         }
     }
 
     public async void AddCountryClick()
     {
         //refresh country list
-        await countrieslist.LoadCountries();
+        if (countrieslist != null)
+            await countrieslist.LoadCountries();
     }
 
     
