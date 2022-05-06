@@ -17,6 +17,8 @@ builder.Services.AddSingleton<DataAdminServices>();
 
 //Notifiers
 builder.Services.AddScoped<CountriesListNotifier>();
+//builder.Services.AddScoped<IGenericListNotifier<>,GenericListNotifier<>>();
+builder.Services.AddScoped(typeof(IGenericListNotifier<>), typeof(GenericListNotifier<>));
 
 //swagger
 builder.Services.AddMvcCore().AddApiExplorer();

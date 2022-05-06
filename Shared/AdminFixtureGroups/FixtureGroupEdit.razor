@@ -1,0 +1,94 @@
+@using Models
+@using MudBlazor
+@using System.ComponentModel.DataAnnotations
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject IGenericListNotifier<FixtureGroups> GenericNotifier
+@inject ISnackbar Snackbar
+
+<EditForm Model="@ActiveFixtureGroup" OnValidSubmit="DataValidated">
+    <DataAnnotationsValidator />
+    <MudPaper Class="pa-2 ma-2" Outlined="true">
+        <MudTextField 
+            @bind-Value="ActiveFixtureGroup.GroupName" 
+            Label="Nombre del grupo" 
+            Variant="Variant.Text" 
+            For="@(() => ActiveFixtureGroup.GroupName)"/>
+        <MudButton 
+            ButtonType="ButtonType.Submit"
+            Variant="Variant.Filled" 
+            Color="Color.Primary" 
+            Disabled="@ButtonDisabled" 
+            Class="ma-2">
+            @if (ButtonDisabled)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                <MudText Class="ms-2">Procesando</MudText>
+            }
+            else
+            {
+                <MudText>@ButtonText</MudText>
+            }   
+        </MudButton>
+    </MudPaper>
+</EditForm>
+   
+@code
+{
+
+    bool ButtonDisabled = false;
+    FixtureGroups ActiveFixtureGroup = new();
+    String ButtonText = "Agregar";
+    public async Task Add()
+    {
+        ButtonDisabled = true;
+        var response = await HttpClient.PostAsJsonAsync<FixtureGroups>(NavigationManager.BaseUri + "DataAdmin/UpSertFixtureGroups",ActiveFixtureGroup);
+        if (!response.IsSuccessStatusCode)
+        {
+            Snackbar.Add("No se agrego el registro",Severity.Error);
+        }
+        else
+        {
+            Snackbar.Add("Registro agregado",Severity.Info);
+        }
+        //await Task.Delay(2000);
+        ActiveFixtureGroup = new();
+        await GenericNotifier.ChangeData();
+        ButtonText = "Agregar";
+        StateHasChanged();
+        ButtonDisabled = false;
+    }
+
+    public async Task DataValidated()
+    {
+        await Add();
+    }
+
+    public async Task OnNotify()
+    {
+        if (GenericNotifier.data != null)
+        {
+            ActiveFixtureGroup = GenericNotifier.data;
+            ButtonText = "Actualizar";
+        }
+        else
+        {
+            ActiveFixtureGroup = new();
+            ButtonText = "Agregar";
+        }
+        await InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+    protected override void OnInitialized()
+    {
+        GenericNotifier.NotifyDataControl += OnNotify;
+    }
+
+
+    public void Dispose()
+    {
+        GenericNotifier.NotifyDataControl -= OnNotify;
+    }
+}

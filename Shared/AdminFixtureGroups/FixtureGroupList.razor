@@ -1,0 +1,130 @@
+@using Models
+@using MudBlazor
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject IGenericListNotifier<FixtureGroups> ListNotifier
+@inject ISnackbar Snackbar
+
+@if (FixtureGroupsList == null || FixtureGroupsList.Count == 0)
+{
+    <MudText> No hay datos... (una pena)</MudText>
+}
+else
+{
+    <MudTable Items="@FixtureGroupsList" Hover="true" Breakpoint="Breakpoint.Sm" 
+    Loading="@Loading" 
+    LoadingProgressColor="Color.Info"
+    RowClassFunc="@SelectedRowClassFunc"
+    OnRowClick="RowClickEvent"
+    T="FixtureGroups"
+    @ref="FixtureGroupTable">
+    <HeaderContent>
+        <MudTh>ID</MudTh>
+        <MudTh>Grupo</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="ID">@context.ID</MudTd>
+        <MudTd DataLabel="Pais">@context.GroupName</MudTd>
+        <MudTd >
+            <MudIconButton 
+                Icon="@Icons.Material.Filled.Delete" 
+                aria-label="delete"
+                OnClick="() => DeleteRow(context)" />
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+}
+
+
+<style>
+    .selected {
+    background-color: #1E88E5 !important;
+}
+
+    .selected > td {
+        color: white !important;
+    }
+
+        .selected > td .mud-input {
+            color: white !important;
+        }
+</style>
+
+@code
+{
+        List<FixtureGroups> FixtureGroupsList = new();
+        bool Loading = true;
+        private MudTable<FixtureGroups>? FixtureGroupTable;
+        int selectedId = -1;
+        protected override async Task OnInitializedAsync()
+        {
+            await LoadFixtureGroups();
+            ListNotifier.NotifyList += LoadFixtureGroups;
+        }
+
+        public void Dispose()
+        {
+            ListNotifier.NotifyDataControl -= LoadFixtureGroups;
+        }
+
+
+        public async Task LoadFixtureGroups()
+        {
+            Loading = true;
+            FixtureGroupsList = await HttpClient.GetFromJsonAsync<List<FixtureGroups>>(NavigationManager.BaseUri + "DataAdmin/GetAllFixtureGroups")??new();
+            Loading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+
+        private async void RowClickEvent(TableRowClickEventArgs<FixtureGroups> tableRowClickEventArgs)
+        {
+            FixtureGroups selectedRow; 
+            
+            if (FixtureGroupTable != null && FixtureGroupTable.SelectedItem != null)
+            {
+                selectedRow = tableRowClickEventArgs.Item;
+                if(selectedId == selectedRow.ID)
+                {
+                    //clicked on the same, deselect
+                    await ListNotifier.ChangeRow(null);
+                }
+                else
+                {
+                    await ListNotifier.ChangeRow(tableRowClickEventArgs.Item);
+                }
+            }
+        }
+        private string SelectedRowClassFunc(FixtureGroups element, int rowNumber)
+        {
+            if (selectedId == element.ID)
+            {
+                selectedId = -1;
+
+                return string.Empty;
+            }
+            else if (FixtureGroupTable!.SelectedItem != null && FixtureGroupTable.SelectedItem.Equals(element))
+            {
+                selectedId = element.ID;
+                return "selected";
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+
+        private async void DeleteRow(FixtureGroups c)
+        {
+            var response = await HttpClient.PostAsJsonAsync<FixtureGroups>(NavigationManager.BaseUri + "DataAdmin/DeleteFixtureGroups",c);
+            if (!response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("No se elimino la fila",Severity.Error);
+            }
+            else
+            {
+                Snackbar.Add("Fila eliminada correctamente",Severity.Info);
+            }
+            await LoadFixtureGroups();
+        }
+        
+}
