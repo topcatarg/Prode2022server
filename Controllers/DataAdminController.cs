@@ -52,6 +52,40 @@ namespace Prode2022Server.Controllers
             bool result = await dataadminservice.Delete(country);
             return result?new OkResult() : new BadRequestResult();
         }
+
+        [Route("GetAllFixtureGroups")]
+        [HttpGet]
+        public async Task<ActionResult<List<FixtureGroups>>> GetAllFixtureGroups()
+        {
+            return await dataadminservice.GetAllFixtureGroups();
+        }
+
+        [Route("UpSertFixtureGroups")]
+        [HttpPost]
+        public async Task<ActionResult> UpSertFixtureGroups(FixtureGroups fixtureGroups)
+        {
+            if (fixtureGroups == null
+                || fixtureGroups.GroupName == "")
+            {
+                return new BadRequestResult();
+            }
+            //validate country
+            bool result = await dataadminservice.UpSert(fixtureGroups);
+            
+            return result?new OkResult() : new BadRequestResult();
+        }
+
+        [Route("DeleteFixtureGroups")]
+        [HttpPost]
+        public async Task<ActionResult> Delete(FixtureGroups fixtureGroups)
+        {
+            if (fixtureGroups == null)
+            {
+                return new BadRequestResult();
+            }
+            bool result = await dataadminservice.Delete(fixtureGroups);
+            return result?new OkResult() : new BadRequestResult();
+        }
     }
 
 }
