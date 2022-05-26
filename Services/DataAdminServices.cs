@@ -138,5 +138,104 @@ namespace Prode2022Server.Services
             }
             return result > 0;
         }
+    
+        public async Task<List<FixtureMatch>> GetAllMatchs()
+        {
+            using SqliteConnection db = database.SimpleDbConnection();
+            var data = await db.QueryAsync<FixtureMatch>(@"
+                select
+Id,
+strftime(""%d/%m"",date) as date,
+strftime(""%H:%M"",date) as time,
+Team1,
+Team2,
+Stage,
+(select name from fixturegroupsname f where f.id = m.stage) as Stagename,
+(select Team from Teams t where t.id = m.team1) as Team1Name,
+(select Team from Teams t where t.id = m.team2) as Team2Name,
+(select Code from Teams t where t.id = m.team1) as Team1Flag,
+(select Code from Teams t where t.id = m.team2) as Team2Flag
+from Matches m
+order by date"
+            );
+            db.Close();
+            return data.ToList();
+        }
+
+        public async Task<List<FixtureMatch>> GetAllFixtureMatchs()
+        {
+            using SqliteConnection db = database.SimpleDbConnection();
+            var data = await db.QueryAsync<FixtureMatch>(@"
+select 
+    Id, 
+    Team1, 
+    Team2, 
+    Stage, 
+    Substr(Date,1,10) as Date, 
+    Substr(Date,12,5) as Time 
+from Matches"
+            );
+            db.Close();
+            return data.ToList();
+        }
+    
+        public async Task<bool> Delete(FixtureMatch fixtureMatch)
+        {
+             using SqliteConnection db = database.SimpleDbConnection();
+            //check if can delete on other tables
+            int result;
+            result = await db.ExecuteScalarAsync<int>(
+                @"Select count(1) from UserForecast where MatchId = @id",
+                new {
+                    id = fixtureMatch.Id
+                }
+            );
+            if (result > 0)
+            {
+                return false;
+            }
+            result = await db.ExecuteAsync(
+                @"delete from Matches where Id = @Id",
+                new {
+                    Id = fixtureMatch.Id
+                }
+            );
+            return result>0;
+        }
+    
+        public async Task<bool> UpSert(FixtureMatch fixtureMatch)
+        {
+            using SqliteConnection db = database.SimpleDbConnection();
+            int result; 
+            if (fixtureMatch.Id == 0)
+            {
+                result = await db.ExecuteAsync(
+                @"insert into Matches (Date,Team1,Team2,Stage) values (@date,@team1,@team2,@stage)",
+                new {
+                    date = $"2022-{fixtureMatch.Date.Substring(3,2)}-{fixtureMatch.Date.Substring(0,2)} {fixtureMatch.Time}",
+                    team1 = fixtureMatch.Team1,
+                    team2 = fixtureMatch.Team2,
+                    stage = fixtureMatch.Stage
+                });
+            }
+            else
+            {
+                result = await db.ExecuteAsync(@"
+update matches set 
+    Date = @date,
+    Team1 = @team1,
+    Team2 = @team2,
+    Stage = @stage
+where id = @id",
+                new {
+                    date = $"{fixtureMatch.Date}",
+                    team1 = fixtureMatch.Team1,
+                    team2 = fixtureMatch.Team2,
+                    stage = fixtureMatch.Stage,
+                    id = fixtureMatch.Id
+                });
+            }
+            return result > 0;
+        }
     }
 }

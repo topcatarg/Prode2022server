@@ -8,7 +8,7 @@ namespace Prode2022Server.Controllers
 {
     [Route("DataAdmin")]
     [ApiController]
-    public class DataAdminController: Controller
+    public class DataAdminController : Controller
     {
 
         DataAdminServices dataadminservice;
@@ -37,8 +37,8 @@ namespace Prode2022Server.Controllers
             }
             //validate country
             bool result = await dataadminservice.UpSert(country);
-            
-            return result?new OkResult() : new BadRequestResult();
+
+            return result ? new OkResult() : new BadRequestResult();
         }
 
         [Route("Delete")]
@@ -50,7 +50,7 @@ namespace Prode2022Server.Controllers
                 return new BadRequestResult();
             }
             bool result = await dataadminservice.Delete(country);
-            return result?new OkResult() : new BadRequestResult();
+            return result ? new OkResult() : new BadRequestResult();
         }
 
         [Route("GetAllFixtureGroups")]
@@ -71,8 +71,8 @@ namespace Prode2022Server.Controllers
             }
             //validate country
             bool result = await dataadminservice.UpSert(fixtureGroups);
-            
-            return result?new OkResult() : new BadRequestResult();
+
+            return result ? new OkResult() : new BadRequestResult();
         }
 
         [Route("DeleteFixtureGroups")]
@@ -84,8 +84,57 @@ namespace Prode2022Server.Controllers
                 return new BadRequestResult();
             }
             bool result = await dataadminservice.Delete(fixtureGroups);
-            return result?new OkResult() : new BadRequestResult();
+            return result ? new OkResult() : new BadRequestResult();
+        }
+
+        [Route("GetAllMatchs")]
+        [HttpGet]
+        public async Task<ActionResult<List<FixtureMatch>>> GetAllMatchs()
+        {
+            return await dataadminservice.GetAllMatchs();
+        }
+
+        [Route("GetAllFixtureMatchs")]
+        [HttpGet]
+        public async Task<ActionResult<List<FixtureMatch>>> GetAllFixtureMatchs()
+        {
+            return await dataadminservice.GetAllFixtureMatchs();
+        }
+
+        [Route("DeleteFixtureMatch")]
+        [HttpPost]
+        public async Task<ActionResult> Delete(FixtureMatch fixtureMatch)
+        {
+            if (fixtureMatch == null)
+            {
+                return new BadRequestResult();
+            }
+            bool result = await dataadminservice.Delete(fixtureMatch);
+            return result ? new OkResult() : new BadRequestResult();
+        }
+    
+        [Route("UpSertFixtureMatch")]
+        [HttpPost]
+        public async Task<ActionResult> Upsert(FixtureMatch fixtureMatch)
+        {
+            if (fixtureMatch == null
+                || fixtureMatch.Date == ""
+                || fixtureMatch.Time == ""
+                || fixtureMatch.Team1 == null
+                || fixtureMatch.Team1 == 0
+                || fixtureMatch.Team2 == null
+                || fixtureMatch.Team2 == 0
+                || fixtureMatch.Stage == null
+                || fixtureMatch.Stage == 0)
+            {
+                return new BadRequestResult();
+            }
+            //validate country
+            bool result = await dataadminservice.UpSert(fixtureMatch);
+
+            return result ? new OkResult() : new BadRequestResult();
         }
     }
+
 
 }

@@ -1,1 +1,146 @@
-Editando fixture
+@using Models
+@using MudBlazor
+@using System.ComponentModel.DataAnnotations
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject IGenericListNotifier<FixtureMatch> GenericNotifier
+@inject ISnackbar Snackbar
+
+<EditForm Model="@ActiveMatch" OnValidSubmit="DataValidated">
+    <DataAnnotationsValidator />
+    <MudPaper Class="pa-2 ma-2" Outlined="true">
+        <MudStack Row="true">
+            <MudSelect 
+            @bind-Value="ActiveMatch.Date" 
+            For="@(() => ActiveMatch.Date)" 
+            Label="Fecha">
+                @foreach (string date in Dates)
+                {
+                    <MudSelectItem value="@date" T="string">@date</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect Label="Hora" @bind-Value="ActiveMatch.Time" For="@(() => ActiveMatch.Time)">
+                @foreach (string time in Times)
+                {
+                    <MudSelectItem value="@time" T="string">@time</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect Label="Grupo" @bind-Value="ActiveMatch.Stage" For="@(() => ActiveMatch.Stage)" >
+                @foreach (FixtureGroups f in GroupList)
+                {
+                    <MudSelectItem value="@f.ID" T="int?">@f.GroupName</MudSelectItem>
+                }
+            </MudSelect>
+        </MudStack>
+        <MudStack Row="true">
+            <MudSelect Label="Equipo 1" @bind-Value="ActiveMatch.Team1" For="@(() => ActiveMatch.Team1)" >
+                @foreach (Country country in CountryList)
+                {
+                    <MudSelectItem value="@country.ID" T="int?">@country.Team</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect Label="Equipo 2" @bind-Value="ActiveMatch.Team2" For="@(() => ActiveMatch.Team2)" >
+                @foreach (Country country in CountryList)
+                {
+                    <MudSelectItem value="@country.ID" T="int?">@country.Team</MudSelectItem>
+                }
+            </MudSelect>
+        </MudStack>
+
+        <MudButton 
+            ButtonType="ButtonType.Submit"
+            Variant="Variant.Filled" 
+            Color="Color.Primary" 
+            Disabled="@ButtonDisabled" 
+            Class="ma-2">
+            @if (ButtonDisabled)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                <MudText Class="ms-2">Procesando</MudText>
+            }
+            else
+            {
+                <MudText>@ButtonText</MudText>
+            }   
+        </MudButton>
+    </MudPaper>
+</EditForm>
+   
+@code
+{
+
+    bool ButtonDisabled = false;
+    FixtureMatch ActiveMatch = new();
+    String ButtonText = "Agregar";
+    List<string> Dates = new();
+    List<string> Times = new();
+    List<Country> CountryList = new();
+    List<FixtureGroups> GroupList = new();
+    string MatchDate {get; set;} = "";
+    string MatchTime {get; set;} = "";
+    public async Task Add()
+    {
+        ButtonDisabled = true;
+        var response = await HttpClient.PostAsJsonAsync<FixtureMatch>(NavigationManager.BaseUri + "DataAdmin/UpSertFixtureMatch",ActiveMatch);
+        if (!response.IsSuccessStatusCode)
+        {
+            Snackbar.Add("No se agrego el registro",Severity.Error);
+        }
+        else
+        {
+            Snackbar.Add("Registro agregado",Severity.Info);
+        }
+        //await Task.Delay(2000);
+        ActiveMatch = new();
+        await GenericNotifier.ChangeData();
+        ButtonText = "Agregar";
+        StateHasChanged();
+        ButtonDisabled = false;
+    }
+
+    public async Task DataValidated()
+    {
+        await Add();
+    }
+
+    public async Task OnNotify()
+    {
+        if (GenericNotifier.data != null)
+        {
+            ActiveMatch = GenericNotifier.data;
+            ButtonText = "Actualizar";
+        }
+        else
+        {
+            ActiveMatch = new();
+            ButtonText = "Agregar";
+        }
+        await InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        //create the list of dates
+        DateOnly date = new(2022,11,1);
+        while(date.CompareTo(new DateOnly(2022,12,31)) != 0)
+        {
+            Dates.Add(date.ToString("dd/MM"));
+            date = date.AddDays(1);
+        }
+        Times = Enumerable.Range(00, 24).Select(i => (i*100).ToString("00:00")).ToList<string>();
+        //Get the country list
+        CountryList = await HttpClient.GetFromJsonAsync<List<Country>>(NavigationManager.BaseUri + "DataAdmin/AllCountries")??new();
+        GroupList = await HttpClient.GetFromJsonAsync<List<FixtureGroups>>(NavigationManager.BaseUri + "DataAdmin/GetAllFixtureGroups")??new();
+        GenericNotifier.NotifyDataControl += OnNotify;
+    }
+
+
+    public void Dispose()
+    {
+        GenericNotifier.NotifyDataControl -= OnNotify;
+    }
+
+    
+}

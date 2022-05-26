@@ -1,0 +1,147 @@
+@using Models
+@using MudBlazor
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject IGenericListNotifier<FixtureMatch> ListNotifier
+@inject ISnackbar Snackbar
+
+@if (MatchsList == null || MatchsList.Count == 0)
+{
+    <MudText> No hay datos... (una pena)</MudText>
+}
+else
+{
+    <MudTable Items="@MatchsList" 
+    Hover="true" 
+    Dense="true"
+    Breakpoint="Breakpoint.Sm" 
+    Loading="@Loading" 
+    LoadingProgressColor="Color.Info"
+    RowClassFunc="@SelectedRowClassFunc"
+    OnRowClick="RowClickEvent"
+    T="FixtureMatch"
+    @ref="MatchsTable">
+    <HeaderContent>
+        <MudTh>ID</MudTh>
+        <MudTh>Fecha</MudTh>
+        <MudTh>Equipo 1</MudTh>
+        <MudTh>Equipo 2</MudTh>
+        <MudTh>Grupo</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="ID">@context.Id</MudTd>
+        <MudTd DataLabel="Fecha">@context.FormatedDate</MudTd>
+        <MudTd DataLabel="Equipo 1">
+            <MudImage Elevation="25" Class="rounded-lg" Src="@($"Images/{@context.Team1Flag}.png")"/>
+            @context.Team1Name
+        </MudTd>
+        <MudTd DataLabel="Equipo 2">
+            @context.Team2Name
+            <MudImage Elevation="25" Class="rounded-lg" Src="@($"Images/{@context.Team2Flag}.png")"/>
+        </MudTd>
+        <MudTd DataLabel="Grupo">@context.StageName</MudTd>
+        <MudTd >
+            <MudIconButton 
+                Icon="@Icons.Material.Filled.Delete" 
+                aria-label="delete"
+                OnClick="() => DeleteRow(context)" />
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+}
+
+
+<style>
+    .selected {
+    background-color: #1E88E5 !important;
+}
+
+    .selected > td {
+        color: white !important;
+    }
+
+        .selected > td .mud-input {
+            color: white !important;
+        }
+</style>
+
+@code
+{
+        List<FixtureMatch> MatchsList = new();
+        bool Loading = true;
+        private MudTable<FixtureMatch>? MatchsTable;
+        int selectedId = -1;
+        protected override async Task OnInitializedAsync()
+        {
+            await LoadMatches();
+            ListNotifier.NotifyList += LoadMatches;
+        }
+
+        public void Dispose()
+        {
+            ListNotifier.NotifyDataControl -= LoadMatches;
+        }
+
+
+        public async Task LoadMatches()
+        {
+            Loading = true;
+            MatchsList = await HttpClient.GetFromJsonAsync<List<FixtureMatch>>(NavigationManager.BaseUri + "DataAdmin/GetAllMatchs")??new();
+            Loading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+
+        private async void RowClickEvent(TableRowClickEventArgs<FixtureMatch> tableRowClickEventArgs)
+        {
+            FixtureMatch selectedRow; 
+            
+            if (MatchsTable != null && MatchsTable.SelectedItem != null)
+            {
+                selectedRow = tableRowClickEventArgs.Item;
+                if(selectedId == selectedRow.Id)
+                {
+                    //clicked on the same, deselect
+                    await ListNotifier.ChangeRow(null);
+                }
+                else
+                {
+                    await ListNotifier.ChangeRow(tableRowClickEventArgs.Item);
+                }
+            }
+        }
+        private string SelectedRowClassFunc(FixtureMatch element, int rowNumber)
+        {
+            if (selectedId == element.Id)
+            {
+                selectedId = -1;
+
+                return string.Empty;
+            }
+            else if (MatchsTable!.SelectedItem != null && MatchsTable.SelectedItem.Equals(element))
+            {
+                selectedId = element.Id;
+                return "selected";
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+
+        private async void DeleteRow(FixtureMatch c)
+        {
+            var response = await HttpClient.PostAsJsonAsync<FixtureMatch>(NavigationManager.BaseUri + "DataAdmin/DeleteFixtureMatch",c);
+            if (!response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("No se elimino la fila",Severity.Error);
+            }
+            else
+            {
+                Snackbar.Add("Fila eliminada correctamente",Severity.Info);
+            }
+
+            await ListNotifier.ChangeRow(null);
+            await LoadMatches();
+        }
+        
+}
