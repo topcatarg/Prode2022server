@@ -210,9 +210,11 @@ from Matches"
             if (fixtureMatch.Id == 0)
             {
                 result = await db.ExecuteAsync(
-                @"insert into Matches (Date,Team1,Team2,Stage) values (@date,@team1,@team2,@stage)",
+                @"
+insert into Matches (Date,Team1,Team2,Stage,Team1Goals,Team2Goals) 
+values (@date,@team1,@team2,@stage,0,0)",
                 new {
-                    date = $"2022-{fixtureMatch.Date.Substring(3,2)}-{fixtureMatch.Date.Substring(0,2)} {fixtureMatch.Time}",
+                    date = $"2022-{fixtureMatch.Date!.Substring(3,2)}-{fixtureMatch.Date!.Substring(0,2)} {fixtureMatch.Time}",
                     team1 = fixtureMatch.Team1,
                     team2 = fixtureMatch.Team2,
                     stage = fixtureMatch.Stage
@@ -235,6 +237,41 @@ where id = @id",
                     id = fixtureMatch.Id
                 });
             }
+            return result > 0;
+        }
+    
+        public async Task<List<MatchResult>> GetMatchResultsAsync()
+        {
+            using SqliteConnection db = database.SimpleDbConnection();
+            var data = await db.QueryAsync<MatchResult>(@"
+                select
+Id,
+date,
+coalesce(Team1Goals,0) as Team1Goals,
+coalesce(Team2Goals,0) as Team2Goals,
+(select name from fixturegroupsname f where f.id = m.stage) as Stagename,
+(select Team from Teams t where t.id = m.team1) as Team1Name,
+(select Team from Teams t where t.id = m.team2) as Team2Name
+from Matches m
+order by date"
+            );
+            db.Close();
+            return data.ToList();
+        }
+    
+        public async Task<bool> StoreMatchResult(MatchResult matchResult)
+        {
+            using SqliteConnection db = database.SimpleDbConnection();
+            var result = await db.ExecuteAsync(@"
+update matches set 
+    Team1Goals = @Team1Goals,
+    Team2Goals = @Team2Goals
+where id = @id",
+                new {
+                    id = matchResult.Id,
+                    Team1Goals = matchResult.Team1Goals,
+                    Team2Goals = matchResult.Team2Goals,
+                });
             return result > 0;
         }
     }

@@ -3,6 +3,7 @@ using Prode2022Server.Services;
 using System.Linq;
 using System.Collections.Immutable;
 using Prode2022Server.Models;
+using Prode2022Server.Helpers;
 
 namespace Prode2022Server.Controllers
 {
@@ -30,8 +31,9 @@ namespace Prode2022Server.Controllers
         public async Task<ActionResult> UpSert(Country country)
         {
             if (country == null
-                || country.Team == ""
-                || country.Code == "")
+                || country.Team.IsNullOrEmpty()
+                || country.Code.IsNullOrEmpty()
+            )
             {
                 return new BadRequestResult();
             }
@@ -65,7 +67,7 @@ namespace Prode2022Server.Controllers
         public async Task<ActionResult> UpSertFixtureGroups(FixtureGroups fixtureGroups)
         {
             if (fixtureGroups == null
-                || fixtureGroups.GroupName == "")
+                || fixtureGroups.GroupName.IsNullOrEmpty())
             {
                 return new BadRequestResult();
             }
@@ -118,21 +120,32 @@ namespace Prode2022Server.Controllers
         public async Task<ActionResult> Upsert(FixtureMatch fixtureMatch)
         {
             if (fixtureMatch == null
-                || fixtureMatch.Date == ""
-                || fixtureMatch.Time == ""
-                || fixtureMatch.Team1 == null
-                || fixtureMatch.Team1 == 0
-                || fixtureMatch.Team2 == null
-                || fixtureMatch.Team2 == 0
-                || fixtureMatch.Stage == null
-                || fixtureMatch.Stage == 0)
+                || fixtureMatch.Date.IsNullOrEmpty()
+                || fixtureMatch.Time.IsNullOrEmpty()
+                || fixtureMatch.Team1.IsNullOrZero()
+                || fixtureMatch.Team2.IsNullOrZero()
+                || fixtureMatch.Stage.IsNullOrZero()
+                )
             {
                 return new BadRequestResult();
             }
-            //validate country
             bool result = await dataadminservice.UpSert(fixtureMatch);
 
             return result ? new OkResult() : new BadRequestResult();
+        }
+    
+        [Route("GetMatchResults")]
+        [HttpGet]
+        public async Task<ActionResult<List<MatchResult>>> GetMatchResults()
+        {
+            return await dataadminservice.GetMatchResultsAsync();
+        }
+
+        [Route("StoreMatchResult")]
+        [HttpPost]
+        public async Task<ActionResult<bool>> StoreMatchResult(MatchResult matchResult)
+        {
+            return await dataadminservice.StoreMatchResult(matchResult);
         }
     }
 
