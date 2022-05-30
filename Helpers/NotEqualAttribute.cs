@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Prode2022Server.Models
+namespace Prode2022Server.Helpers
 {
 
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]

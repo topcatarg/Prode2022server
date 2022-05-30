@@ -1,0 +1,109 @@
+@using Models
+@using MudBlazor
+@using System.ComponentModel.DataAnnotations
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject IGenericListNotifier<FixtureGroups> GenericNotifier
+@inject ISnackbar Snackbar
+
+@if(Loading)
+{
+    <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+}
+else
+{
+    <MudPaper Class="pa-2 ma-2" Outlined="true">
+        <MudTable Items="@MatchResultsList" 
+            Hover="true" 
+            Dense="true"
+            Breakpoint="Breakpoint.Sm" 
+            Loading="@Loading" 
+            LoadingProgressColor="Color.Info"
+            GroupBy="@_groupDefinition"
+            T="MatchResult">
+            <HeaderContent>
+                <MudTh>Fecha</MudTh>
+                <MudTh>Equipo 1</MudTh>
+                <MudTh></MudTh>
+                <MudTh></MudTh>
+                <MudTh>Equipo 2</MudTh>
+            </HeaderContent>
+            <GroupHeaderTemplate>
+                <MudTh Class="mud-table-cell-custom-group" colspan="5">@($"Grupo: {context.Key}")</MudTh>
+            </GroupHeaderTemplate>
+            <RowTemplate>
+                <MudTd DataLabel="Fecha">@context.Date</MudTd>
+                <MudTd DataLabel="Equipo 1">@context.Team1Name</MudTd>
+                <MudTd>
+                    <MudNumericField Disabled="!context.Editable" @bind-Value="context.Team1Goals" Variant="Variant.Text" Min="0" Max="100" />
+                </MudTd>
+                <MudTd>
+                    <MudNumericField Disabled="!context.Editable" @bind-Value="context.Team2Goals" Variant="Variant.Text" Min="0" Max="100" />
+                </MudTd>
+                <MudTd DataLabel="Equipo 2">@context.Team2Name</MudTd>
+                <MudTd >
+                    @if(!context.Editable)
+                    {
+                        <MudIconButton 
+                            Icon="@Icons.Material.Filled.Edit"      
+                            aria-label="Edit"
+                            OnClick="() => context.Editable=true"
+                        />
+                    }
+                    else
+                    {
+                        <MudIconButton 
+                            Icon="@Icons.Material.Filled.Cancel"      
+                            aria-label="Close edit"
+                            OnClick="() => context.Editable=false"
+                        />
+                    }
+                    <MudIconButton 
+                            Icon="@Icons.Material.Filled.Save"      
+                            aria-label="Save"
+                            OnClick="() => StoreResult(context)"
+                        />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudPaper>
+}
+@code
+{
+    bool Loading= true;
+    List<MatchResult> MatchResultsList = new();
+
+    private TableGroupDefinition<MatchResult> _groupDefinition = new()
+    {
+        GroupName = "StageName",
+        Indentation = false,
+        Expandable = true,
+        IsInitiallyExpanded = false,
+        Selector = (e) => e.StageName
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        MatchResultsList = await HttpClient.GetFromJsonAsync<List<MatchResult>>(NavigationManager.BaseUri + "DataAdmin/GetMatchResults")??new();
+        await InvokeAsync(() =>
+        {
+            StateHasChanged();
+        }); 
+        Loading = false;
+    }
+
+    private async Task StoreResult(MatchResult matchResult)
+    {
+        var response = await HttpClient.PostAsJsonAsync<MatchResult>(
+            NavigationManager.BaseUri + "DataAdmin/StoreMatchResult",matchResult);
+        if (!response.IsSuccessStatusCode)
+        {
+            Snackbar.Add("No se actualizo",Severity.Error);
+        }
+        else
+        {
+            Snackbar.Add("Actualizado correctamente",Severity.Info);
+        }
+    }
+
+}
