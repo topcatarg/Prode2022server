@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Prode2022Server.Data;
 using Prode2022Server.Services;
+using Prode2022Server.Security;
 using MudBlazor.Services;
 using MudBlazor;
+using Microsoft.AspNetCore.Components.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +16,12 @@ builder.Services.AddHttpClient();
 builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddSingleton<DbService>();
 builder.Services.AddSingleton<DataAdminServices>();
+
+//authentication
+
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthProvider>();
+//builder.Services.AddAuthentication();
+
 
 //Notifiers
 builder.Services.AddScoped<CountriesListNotifier>();
