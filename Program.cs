@@ -16,6 +16,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddSingleton<DbService>();
 builder.Services.AddSingleton<DataAdminServices>();
+builder.Services.AddSingleton<SecurityServices>();
 
 //authentication
 

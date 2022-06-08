@@ -6,9 +6,14 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar>
+    <MudAppBar Dense="true">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        Prode 2022
+        <MudText Align="Align.Left">Prode 2022</MudText> 
+        <MudSpacer />
+        
+        <MudText Align="Align.Right" >
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/Login">Ingresar</MudButton>
+        </MudText>
     </MudAppBar>
     <MudDrawer @bind-Open="@_drawerOpen">
         <MyNavMenu/>
