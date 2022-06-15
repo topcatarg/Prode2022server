@@ -6,18 +6,28 @@ namespace Prode2022Server.Security
 {
     public class CustomAuthProvider : AuthenticationStateProvider
     {
-        public override Task<AuthenticationState> GetAuthenticationStateAsync()
+        public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-            var identity = new ClaimsIdentity(new[]
-            {
-            new Claim(ClaimTypes.Name, "mrfibuli"),
-        }, "Fake authentication type");
+            //Obtengo la cookie, a ver si puedo
+            
+            //var accessToken = await _localStorageService.GetItemAsync<string>("accessToken");           
 
-            var user = new ClaimsPrincipal(identity);
+            ClaimsIdentity identity;
+            /*
+                        if (accessToken != null && accessToken != string.Empty)
+                        {
+                            User user = await _userService.GetUserByAccessTokenAsync(accessToken);
+                            identity = GetClaimsIdentity(user);
+                        }
+                        else
+                        {*/
+            identity = new ClaimsIdentity();
+            //}          
 
-            return Task.FromResult(new AuthenticationState(user));
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+
+            return await Task.FromResult(new AuthenticationState(claimsPrincipal));
+
         }
-
-
     }
 }

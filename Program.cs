@@ -6,6 +6,7 @@ using Prode2022Server.Security;
 using MudBlazor.Services;
 using MudBlazor;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,8 +21,14 @@ builder.Services.AddSingleton<SecurityServices>();
 
 //authentication
 
-builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthProvider>();
+//builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthProvider>();
 //builder.Services.AddAuthentication();
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+.AddCookie(options =>
+{
+    options.ExpireTimeSpan = TimeSpan.FromDays(5);
+});
+builder.Services.AddHttpContextAccessor();
 
 
 //Notifiers
@@ -70,6 +77,10 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+//auth
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");

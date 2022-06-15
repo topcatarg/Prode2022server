@@ -1,5 +1,8 @@
 @using Models
 @inject NavigationManager NavigationManager
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
 
 <MudGrid Justify="Justify.Center" Class="pa-16 ma-2">
     <MudItem xs="3"/>
@@ -90,15 +93,24 @@
         }
     }
 
-    public async Task TryLogin()
+    public async Task CreateUser()
     {
         ButtonDisabled = true;
-        //Call the login method
-        //redirect to main page
-        NavigationManager.NavigateTo("\\");
+        //Call the create user method
+        var response = await HttpClient.PostAsJsonAsync<NewUserData>(NavigationManager.BaseUri + "Security/CreateUser",user);
+        if (!response.IsSuccessStatusCode)
+        {
+            Snackbar.Add("No se agrego el registro",Severity.Error);
+        }
+        else
+        {
+            Snackbar.Add("Registro agregado",Severity.Info);
+            NavigationManager.NavigateTo("\\");
+        }
+        //redirect to main page if created ok
     }
     public async Task DataValidated()
     {
-        await TryLogin();
+        await CreateUser();
     }
 }

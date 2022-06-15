@@ -31,5 +31,19 @@ namespace Prode2022Server.Controllers
             }
             return await securityServices.CreateUser(user);
         }
+
+        [Route("LoginUser")]
+        [HttpPost]
+        public async Task<UserLogin> LoginUser(UserLogin user)
+        {
+            if(
+                user.Email.IsNullOrEmpty()
+                || user.Password.IsNullOrEmpty())
+            {
+                user.LoggedIn = false;
+                return user;
+            }
+            return await securityServices.CheckUser(user);
+        }
     }
 }

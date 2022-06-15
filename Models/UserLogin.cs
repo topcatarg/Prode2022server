@@ -11,6 +11,8 @@ namespace Prode2022Server.Models
         public string? Email { get; set; }
         [Required(ErrorMessage = "Ingrese su password")]
         public string? Password { get; set; }
-        
+        public bool LoggedIn { get; set; }
+        public bool IsAdmin { get; set; }
+        public string? Name { get; set; }
     }
 }

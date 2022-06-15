@@ -1,5 +1,11 @@
 @using Models
+@using System.Security.Claims
+@inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject IHttpContextAccessor HttpContextAccessor
+@using Microsoft.AspNetCore.Authentication;
+@using Microsoft.AspNetCore.Authentication.Cookies;
 
 <EditForm Model="@userLogin" OnValidSubmit="DataValidated">
     <DataAnnotationsValidator />
@@ -67,8 +73,38 @@
     {
         ButtonDisabled = true;
         //Call the login method
+        var response = await HttpClient.PostAsJsonAsync<UserLogin>(NavigationManager.BaseUri + "Security/LoginUser",userLogin);
+        if (!response.IsSuccessStatusCode)
+        {
+            
+            Snackbar.Add("Error al hacer la llamada",Severity.Error);
+        }
+        else
+        {
+            var result = await response.Content.ReadFromJsonAsync<UserLogin>();
+            if (result == null || !result.LoggedIn)
+            {
+                Snackbar.Add("pass mala",Severity.Info);
+            }
+            else
+            {
+                //login user
+                var claims = new List<Claim>();
+                claims.Add(new (ClaimTypes.Name,result.Name!));
+                claims.Add(new (ClaimTypes.Email,result.Email!));
+                var claimsIdentity = new ClaimsIdentity(
+                    claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                await HttpContextAccessor.HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    new ClaimsPrincipal(claimsIdentity)
+                );
+            }
+            
+            //NavigationManager.NavigateTo("\\");
+        }
+        ButtonDisabled = false;
         //redirect to main page
-        NavigationManager.NavigateTo("\\");
+        //NavigationManager.NavigateTo("\\");
     }
     public async Task DataValidated()
     {
