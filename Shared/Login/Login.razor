@@ -1,11 +1,8 @@
 @using Models
-@using System.Security.Claims
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
-@inject IHttpContextAccessor HttpContextAccessor
-@using Microsoft.AspNetCore.Authentication;
-@using Microsoft.AspNetCore.Authentication.Cookies;
+
 
 <EditForm Model="@userLogin" OnValidSubmit="DataValidated">
     <DataAnnotationsValidator />
@@ -89,15 +86,7 @@
             else
             {
                 //login user
-                var claims = new List<Claim>();
-                claims.Add(new (ClaimTypes.Name,result.Name!));
-                claims.Add(new (ClaimTypes.Email,result.Email!));
-                var claimsIdentity = new ClaimsIdentity(
-                    claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                await HttpContextAccessor.HttpContext.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    new ClaimsPrincipal(claimsIdentity)
-                );
+                
             }
             
             //NavigationManager.NavigateTo("\\");
