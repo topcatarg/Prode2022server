@@ -7,6 +7,7 @@ using MudBlazor.Services;
 using MudBlazor;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Blazored.LocalStorage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,15 +22,9 @@ builder.Services.AddSingleton<SecurityServices>();
 
 //authentication
 
-//builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthProvider>();
-//builder.Services.AddAuthentication();
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-.AddCookie(options =>
-{
-    options.ExpireTimeSpan = TimeSpan.FromDays(5);
-});
-builder.Services.AddHttpContextAccessor();
-
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthProvider>();
+            
+builder.Services.AddBlazoredLocalStorage();
 
 //Notifiers
 builder.Services.AddScoped<CountriesListNotifier>();
