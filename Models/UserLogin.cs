@@ -14,5 +14,9 @@ namespace Prode2022Server.Models
         public bool LoggedIn { get; set; }
         public bool IsAdmin { get; set; }
         public string? Name { get; set; }
+
+        public string? AccessToken { get; set; }
+
+        public string? RefreshToken { get; set; }
     }
 }

@@ -2,6 +2,8 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components.Authorization;
 using Blazored.LocalStorage;
+using Prode2022Server.Services;
+using Prode2022Server.Models;
 
 namespace Prode2022Server.Security
 {
@@ -9,10 +11,10 @@ namespace Prode2022Server.Security
     {
 
         public ILocalStorageService _localStorageService { get; }
-        public IUserService _userService { get; set; }        
+        public UserServices _userService { get; set; }        
         private readonly HttpClient? _httpClient;    
         public CustomAuthProvider(ILocalStorageService localStorageService, 
-            IUserService userService,
+            UserServices userService,
             HttpClient httpClient)
         {
             _localStorageService = localStorageService;
@@ -28,7 +30,7 @@ namespace Prode2022Server.Security
 
             if (accessToken != null && accessToken != string.Empty)
             {
-                User user = await _userService.GetUserByAccessTokenAsync(accessToken);
+                UserLogin user = await _userService.GetUserByAccessTokenAsync(accessToken);
                 identity = GetClaimsIdentity(user);
             }
             else
@@ -41,7 +43,7 @@ namespace Prode2022Server.Security
             return await Task.FromResult(new AuthenticationState(claimsPrincipal));
         }
 
-        public async Task MarkUserAsAuthenticated(User user)
+        public async Task MarkUserAsAuthenticated(UserLogin user)
         {
             await _localStorageService.SetItemAsync("accessToken", user.AccessToken);
             await _localStorageService.SetItemAsync("refreshToken", user.RefreshToken);
@@ -65,18 +67,18 @@ namespace Prode2022Server.Security
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
         }
 
-        private ClaimsIdentity GetClaimsIdentity(User user)
+        private ClaimsIdentity GetClaimsIdentity(UserLogin user)
         {
             var claimsIdentity = new ClaimsIdentity();
 
-            if (user.EmailAddress != null)
+            /*if (user.EmailAddress != null)
             { 
                 claimsIdentity = new ClaimsIdentity(new[]
                                 {
                                     new Claim(ClaimTypes.Name, user.EmailAddress),                                   
                                     new Claim(ClaimTypes.Role, user.Role.RoleDesc)
                                 }, "apiauth_type");
-            }
+            }*/
 
             return claimsIdentity;
         }

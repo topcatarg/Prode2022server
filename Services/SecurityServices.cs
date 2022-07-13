@@ -56,5 +56,6 @@ where email = @email",
             NewUser.Password = "";
             return NewUser;
         }
+    
     }
 }

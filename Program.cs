@@ -8,6 +8,7 @@ using MudBlazor;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Blazored.LocalStorage;
+using Prode2022Server.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,8 +24,10 @@ builder.Services.AddSingleton<SecurityServices>();
 //authentication
 
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthProvider>();
-            
+builder.Services.AddScoped<UserServices>();
 builder.Services.AddBlazoredLocalStorage();
+var jwtSection = builder.Configuration.GetSection("JWTSettings");
+builder.Services.Configure<JWTSettings>(jwtSection);
 
 //Notifiers
 builder.Services.AddScoped<CountriesListNotifier>();

@@ -59,13 +59,13 @@ namespace Prode2022Server.Controllers
                 claims.Add(new (ClaimTypes.Email,user.Email!));
                 var claimsIdentity = new ClaimsIdentity(
                     claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                var v = await HttpContextAccessor.HttpContext.SignInAsync(
+                /*var v = await HttpContextAccessor.HttpContext.SignInAsync(
                     CookieAuthenticationDefaults.AuthenticationScheme,
                     new ClaimsPrincipal(claimsIdentity)
-                );
+                );*/
                 
             }
-            bool isok = HttpContextAccessor.HttpContext.User.Identity.IsAuthenticated;
+            bool isok = HttpContextAccessor?.HttpContext?.User?.Identity?.IsAuthenticated??false;
             return user;
         }
     }
