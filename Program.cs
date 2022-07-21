@@ -26,8 +26,14 @@ builder.Services.AddSingleton<SecurityServices>();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthProvider>();
 builder.Services.AddScoped<UserServices>();
 builder.Services.AddBlazoredLocalStorage();
+/*
 var jwtSection = builder.Configuration.GetSection("JWTSettings");
 builder.Services.Configure<JWTSettings>(jwtSection);
+
+builder.Services.Configure<JWTSettings>(con => builder.Configuration.GetSection("JWTSettings").Bind(con));
+*/
+builder.Configuration.GetSection("JWTSettings").Bind(JWTSettings);
+builder.Services.Configure<JWTSettings>(con => builder.Configuration.GetSection("JWTSettings").Bind(con));
 
 //Notifiers
 builder.Services.AddScoped<CountriesListNotifier>();

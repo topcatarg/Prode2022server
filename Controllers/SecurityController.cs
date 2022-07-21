@@ -7,6 +7,10 @@ using Prode2022Server.Helpers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
 
 namespace Prode2022Server.Controllers
 {
@@ -16,13 +20,13 @@ namespace Prode2022Server.Controllers
     {
 
         SecurityServices securityServices;
-        IHttpContextAccessor HttpContextAccessor;
+        private readonly JWTSettings _jwtsettings;
 
         public SecurityController(SecurityServices ses,
-            IHttpContextAccessor httpContextAccessor)
+            JWTSettings jwtsettings)
         {
             securityServices = ses;
-            HttpContextAccessor = httpContextAccessor;
+            _jwtsettings = jwtsettings;
         }
 
         [Route("CreateUser")]
@@ -53,20 +57,31 @@ namespace Prode2022Server.Controllers
             user = await securityServices.CheckUser(user);
             if (user.LoggedIn)
             {
-                //create a session for the user.
-                var claims = new List<Claim>();
-                claims.Add(new (ClaimTypes.Name,user.Name!));
-                claims.Add(new (ClaimTypes.Email,user.Email!));
-                var claimsIdentity = new ClaimsIdentity(
-                    claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                /*var v = await HttpContextAccessor.HttpContext.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    new ClaimsPrincipal(claimsIdentity)
-                );*/
-                
+                //crear la clave jwt
+                user.AccessToken = GenerateAccessToken(user);
+
             }
-            bool isok = HttpContextAccessor?.HttpContext?.User?.Identity?.IsAuthenticated??false;
             return user;
+        }
+
+        private string GenerateAccessToken(UserLogin User)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_jwtsettings.SecretKey??"DefaultKey");
+            var Claims = new List<Claim>()
+            {
+                new Claim(ClaimType.Mail,User.Email!),
+                new Claim(ClaimType.Id,User.Id.ToString())
+            };
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(Claims),
+                Expires = DateTime.UtcNow.AddDays(1),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
+                SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
         }
     }
 }

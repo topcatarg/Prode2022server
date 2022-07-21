@@ -101,6 +101,7 @@
         if (!response.IsSuccessStatusCode)
         {
             Snackbar.Add("No se agrego el registro",Severity.Error);
+            ButtonDisabled = false;
         }
         else
         {

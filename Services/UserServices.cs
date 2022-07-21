@@ -51,14 +51,12 @@ public class UserServices
             var userId = principle.FindFirst(ClaimTypes.Name)?.Value;
 
             //aca deberia buscar y retornar el usuario
-            return 
+            return null;
         }
 
-        var responseStatusCode = response.StatusCode;
-        var responseBody = await response.Content.ReadAsStringAsync();
-
-        var returnedUser = JsonConvert.DeserializeObject<User>(responseBody);
-
-        return await Task.FromResult(returnedUser);
+        //return await Task.FromResult(null);
+        return null;
     }
+
+    
 }

@@ -24,23 +24,32 @@ namespace Prode2022Server.Security
 
          public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {   
-            var accessToken = await _localStorageService.GetItemAsync<string>("accessToken");           
-            
-            ClaimsIdentity identity;
-
-            if (accessToken != null && accessToken != string.Empty)
+            try 
             {
-                UserLogin user = await _userService.GetUserByAccessTokenAsync(accessToken);
-                identity = GetClaimsIdentity(user);
+                var accessToken = await _localStorageService.GetItemAsync<string>("accessToken"); 
+                ClaimsIdentity identity;
+
+                if (accessToken != null && accessToken != string.Empty)
+                {
+                    UserLogin user = await _userService.GetUserByAccessTokenAsync(accessToken);
+                    identity = GetClaimsIdentity(user);
+                }
+                else
+                {
+                    identity = new ClaimsIdentity();
+                }          
+
+                var claimsPrincipal = new ClaimsPrincipal(identity);            
+
+                return await Task.FromResult(new AuthenticationState(claimsPrincipal));
             }
-            else
+            catch 
             {
-                identity = new ClaimsIdentity();
-            }          
-
-            var claimsPrincipal = new ClaimsPrincipal(identity);            
-
-            return await Task.FromResult(new AuthenticationState(claimsPrincipal));
+                return await Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())));
+            }
+                      
+            
+            
         }
 
         public async Task MarkUserAsAuthenticated(UserLogin user)

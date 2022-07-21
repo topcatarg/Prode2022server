@@ -1,7 +1,9 @@
 @using Models
+@using Prode2022Server.Security
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 
 <EditForm Model="@userLogin" OnValidSubmit="DataValidated">
@@ -51,6 +53,10 @@
     InputType PasswordInput = InputType.Password;
     bool isShow;
     bool ButtonDisabled = false;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
     void ButtonTestclick()
     {
         @if (isShow)
@@ -86,7 +92,7 @@
             else
             {
                 //login user
-                
+                await ((CustomAuthProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(result);
             }
             
             //NavigationManager.NavigateTo("\\");

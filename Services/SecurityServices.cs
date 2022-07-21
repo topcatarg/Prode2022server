@@ -44,7 +44,7 @@ values (@name, @email, @password, @salt, @validated)",
         {
             using SqliteConnection db = database.SimpleDbConnection();
             UserLogin NewUser = await db.QueryFirstOrDefaultAsync<UserLogin>(@"
-select Password, Name, Admin as IsAdmin
+select Password, Name, Admin as IsAdmin, Id
 from users
 where email = @email",
                 new
@@ -57,5 +57,6 @@ where email = @email",
             return NewUser;
         }
     
+        
     }
 }
