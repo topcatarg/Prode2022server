@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Blazored.LocalStorage;
 using Prode2022Server.Models;
+using Prode2022Server.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,20 +21,12 @@ builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddSingleton<DbService>();
 builder.Services.AddSingleton<DataAdminServices>();
 builder.Services.AddSingleton<SecurityServices>();
-
+builder.Services.AddSingleton<SettingHelpers>();
 //authentication
 
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthProvider>();
 builder.Services.AddScoped<UserServices>();
 builder.Services.AddBlazoredLocalStorage();
-/*
-var jwtSection = builder.Configuration.GetSection("JWTSettings");
-builder.Services.Configure<JWTSettings>(jwtSection);
-
-builder.Services.Configure<JWTSettings>(con => builder.Configuration.GetSection("JWTSettings").Bind(con));
-*/
-builder.Configuration.GetSection("JWTSettings").Bind(JWTSettings);
-builder.Services.Configure<JWTSettings>(con => builder.Configuration.GetSection("JWTSettings").Bind(con));
 
 //Notifiers
 builder.Services.AddScoped<CountriesListNotifier>();

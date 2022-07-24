@@ -9,14 +9,6 @@ namespace Prode2022Server.Services;
 
 public class UserServices
 {
-    private readonly JWTSettings _jwtsettings;
-
-    public UserServices(
-        JWTSettings jwtsettings
-    )
-    {
-        _jwtsettings = jwtsettings;
-    }
 
     public async Task<UserLogin> GetUserByAccessTokenAsync(string accessToken)
     {
@@ -33,7 +25,7 @@ public class UserServices
 
         var response = await _httpClient.SendAsync(requestMessage);*/
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_jwtsettings.SecretKey);
+        var key = Encoding.ASCII.GetBytes("");
         var tokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,

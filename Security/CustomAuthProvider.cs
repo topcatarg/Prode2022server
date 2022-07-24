@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Blazored.LocalStorage;
 using Prode2022Server.Services;
 using Prode2022Server.Models;
+using Prode2022Server.Helpers;
 
 namespace Prode2022Server.Security
 {
@@ -11,18 +12,15 @@ namespace Prode2022Server.Security
     {
 
         public ILocalStorageService _localStorageService { get; }
-        public UserServices _userService { get; set; }        
-        private readonly HttpClient? _httpClient;    
+        private readonly SecurityServices securityServices;
         public CustomAuthProvider(ILocalStorageService localStorageService, 
-            UserServices userService,
-            HttpClient httpClient)
+            SecurityServices securityServices)
         {
             _localStorageService = localStorageService;
-            _userService = userService;
-            _httpClient = httpClient;
+            this.securityServices = securityServices;
         }
 
-         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
+        public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {   
             try 
             {
@@ -31,7 +29,7 @@ namespace Prode2022Server.Security
 
                 if (accessToken != null && accessToken != string.Empty)
                 {
-                    UserLogin user = await _userService.GetUserByAccessTokenAsync(accessToken);
+                    UserLogin user = await securityServices.GetUserByAccessTokenAsync(accessToken);
                     identity = GetClaimsIdentity(user);
                 }
                 else
@@ -80,14 +78,14 @@ namespace Prode2022Server.Security
         {
             var claimsIdentity = new ClaimsIdentity();
 
-            /*if (user.EmailAddress != null)
+            if (user.Email != null)
             { 
                 claimsIdentity = new ClaimsIdentity(new[]
                                 {
-                                    new Claim(ClaimTypes.Name, user.EmailAddress),                                   
-                                    new Claim(ClaimTypes.Role, user.Role.RoleDesc)
+                                    new Claim(ClaimType.Mail, user.Email),                                   
+                                    new Claim(ClaimType.Id, user.Id.ToString())
                                 }, "apiauth_type");
-            }*/
+            }
 
             return claimsIdentity;
         }
