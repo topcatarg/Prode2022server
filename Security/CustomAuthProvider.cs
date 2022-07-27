@@ -24,13 +24,24 @@ namespace Prode2022Server.Security
         {   
             try 
             {
-                var accessToken = await _localStorageService.GetItemAsync<string>("accessToken"); 
+                string accessToken = await _localStorageService.GetItemAsync<string>("accessToken"); 
                 ClaimsIdentity identity;
 
                 if (accessToken != null && accessToken != string.Empty)
                 {
                     UserLogin user = await securityServices.GetUserByAccessTokenAsync(accessToken);
-                    identity = GetClaimsIdentity(user);
+                    if (user.IsExpired)
+                    {
+                        //get user from refresh token
+                        accessToken = await _localStorageService.GetItemAsync<string>("refreshToken");
+                        user = await securityServices.GetUserByRefreshTokenAsync(accessToken);
+                        //If user is ok, has to make a new token and refresh.
+                        
+                    }
+                    if (user.LoggedIn)
+                    {
+                        identity = new(securityServices.GenerateClaimsForUser(user), "apiauth_type");
+                    }
                 }
                 else
                 {

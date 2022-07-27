@@ -1,0 +1,29 @@
+@page "/Logout"
+@using Prode2022Server.Security
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+<MudText>
+    @if (IsProcessing)
+    {
+        <h5>Processing...</h5>
+    }
+    else
+    {
+        <h5>Ha salido correctamente</h5>
+    }
+    
+</MudText>
+
+@code
+{
+    bool IsProcessing = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ((CustomAuthProvider)AuthenticationStateProvider).MarkUserAsLoggedOut();
+        IsProcessing = false;
+        NavigationManager.NavigateTo("",true);
+    }
+}
+

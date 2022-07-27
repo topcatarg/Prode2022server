@@ -13,6 +13,7 @@ namespace Prode2022Server.Models
         public string? Password { get; set; }
         public bool LoggedIn { get; set; }
         public bool IsAdmin { get; set; }
+        public bool IsExpired { get; set; }
         public string? Name { get; set; }
 
         public string? AccessToken { get; set; }

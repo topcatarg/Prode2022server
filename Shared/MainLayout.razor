@@ -1,5 +1,7 @@
 ﻿@inherits LayoutComponentBase
 @using MudBlazor
+@using System.Security.Claims
+@inject IAuthorizationService authorizationService
 
 <MudThemeProvider />
 <MudDialogProvider />
@@ -10,10 +12,19 @@
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
         <MudText Align="Align.Left">Prode 2022</MudText> 
         <MudSpacer />
-        
-        <MudText Align="Align.Right" >
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/Login">Ingresar</MudButton>
-        </MudText>
+        @if (!IsUserAuthenticated)
+        {
+            <MudText Align="Align.Right" >
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/Login">Ingresar</MudButton>
+            </MudText>
+        }
+        else
+        {
+            <h3><b>@user.Identity.Name</b> is logged in!!!</h3>
+            <MudText Align="Align.Right" >
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/Logout">Salir</MudButton>
+            </MudText>
+        }
     </MudAppBar>
     <MudDrawer @bind-Open="@_drawerOpen">
         <MyNavMenu/>
@@ -25,6 +36,28 @@
 
 @code {
     bool _drawerOpen = true;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    ClaimsPrincipal user;
+
+    bool IsUserAuthenticated;
+    bool IsPublisher;
+    bool IsSeniorEmployee;
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = (await authenticationStateTask).User;
+
+        if (user.Identity.IsAuthenticated)
+            IsUserAuthenticated = true;
+
+        if (user.IsInRole("Publisher"))
+            IsPublisher = true;
+
+        /*if ((await authorizationService.AuthorizeAsync(user, "SeniorEmployee")).Succeeded)
+            IsSeniorEmployee = true;*/
+    }
 
     void DrawerToggle()
     {

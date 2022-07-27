@@ -52,7 +52,8 @@ namespace Prode2022Server.Controllers
             {
                 //crear la clave jwt
                 user.AccessToken = securityServices.GenerateAccessToken(user);
-
+                var RefreshToken = await securityServices.GenerateRefreshToken(user.Id);
+                user.RefreshToken = RefreshToken.Token;
             }
             return user;
         }
