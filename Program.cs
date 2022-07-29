@@ -2,8 +2,14 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Prode2022Server.Data;
 using Prode2022Server.Services;
+using Prode2022Server.Security;
 using MudBlazor.Services;
 using MudBlazor;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Blazored.LocalStorage;
+using Prode2022Server.Models;
+using Prode2022Server.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +20,13 @@ builder.Services.AddHttpClient();
 builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddSingleton<DbService>();
 builder.Services.AddSingleton<DataAdminServices>();
+builder.Services.AddSingleton<SecurityServices>();
+builder.Services.AddSingleton<SettingHelpers>();
+//authentication
+
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthProvider>();
+builder.Services.AddScoped<UserServices>();
+builder.Services.AddBlazoredLocalStorage();
 
 //Notifiers
 builder.Services.AddScoped<CountriesListNotifier>();
@@ -61,6 +74,10 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+//auth
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");

@@ -1,0 +1,38 @@
+@page "/Login"
+@using Prode2022Server.Shared.Login
+
+<MudGrid Justify="Justify.Center" Class="pa-16 ma-2">
+    <MudItem xs="3"/>
+    <MudItem xs="3">
+        <Login/>
+    </MudItem>
+    <MudItem xs="3">
+        <MudPaper>
+            <MudStack>
+                <MudText>Otros metodos de ingreso</MudText>
+                <MudButton>Ingresar con Google</MudButton>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="3"/>
+    <MudItem xs="3"/>
+    <MudItem xs="6" >
+        <MudPaper  class="align-center justify-center " >
+            <MudText>Olvide mi clave</MudText>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="3"/>
+    <MudItem xs="3"/>
+    <MudItem xs="6" >
+        <MudPaper  class="align-center justify-center " >
+            <MudText Align="Align.Center">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/NewUser" >
+                    Crear usuario
+                </MudButton>
+            </MudText>        
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="3"/>
+</MudGrid>
+
+

@@ -1,14 +1,36 @@
 ﻿@inherits LayoutComponentBase
 @using MudBlazor
+@using System.Security.Claims
+@inject IAuthorizationService authorizationService
+@using Prode2022Server.Helpers;
 
 <MudThemeProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar>
+    <MudAppBar Dense="true">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        Prode 2022
+        <MudText Align="Align.Left">Prode 2022</MudText> 
+        <MudSpacer />
+        <AuthorizeView>
+            <Authorizing>
+                <MudText Align="Align.Right">
+                    ...autorizando
+                </MudText>
+            </Authorizing>
+            <Authorized>
+                <h3><b>@UserName</b> is logged in!!!</h3>
+                <MudText Align="Align.Right" >
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/Logout">Salir</MudButton>
+                </MudText>
+            </Authorized>
+            <NotAuthorized>
+                <MudText Align="Align.Right" >
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/Login">Ingresar</MudButton>
+                </MudText>
+            </NotAuthorized>
+        </AuthorizeView>
     </MudAppBar>
     <MudDrawer @bind-Open="@_drawerOpen">
         <MyNavMenu/>
@@ -20,6 +42,29 @@
 
 @code {
     bool _drawerOpen = true;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    ClaimsPrincipal user;
+
+    bool IsUserAuthenticated;
+    bool IsPublisher;
+    bool IsSeniorEmployee;
+    string UserName = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = (await authenticationStateTask).User;
+        UserName = user.GetClaim(ClaimType.Name)??"";
+        if (user.Identity.IsAuthenticated)
+            IsUserAuthenticated = true;
+
+        if (user.IsInRole("Publisher"))
+            IsPublisher = true;
+
+        /*if ((await authorizationService.AuthorizeAsync(user, "SeniorEmployee")).Succeeded)
+            IsSeniorEmployee = true;*/
+    }
 
     void DrawerToggle()
     {

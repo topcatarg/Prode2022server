@@ -1,0 +1,117 @@
+@using Models
+@inject NavigationManager NavigationManager
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<MudGrid Justify="Justify.Center" Class="pa-16 ma-2">
+    <MudItem xs="3"/>
+    <MudItem xs="6">
+       
+        <EditForm Model="@user" OnValidSubmit="DataValidated">
+            <DataAnnotationsValidator />
+            <MudPaper>
+                <MudStack>
+                    <MudText Align="Align.Center" Typo="Typo.h4" Color="Color.Primary">
+                        Nuevo usuario
+                    </MudText>
+                    <MudTextField 
+                        @bind-Value="user.UserName" 
+                        Label="Nombre de usuario" 
+                        Variant="Variant.Text" 
+                        InputType="InputType.Text"
+                        For="@(() => user.UserName)"/>
+                    <MudTextField 
+                        @bind-Value="user.Email" 
+                        Label="E-mail" 
+                        Variant="Variant.Text" 
+                        InputType="InputType.Email"
+                        For="@(() => user.Email)"/>
+                    <MudTextField 
+                        @bind-Value="user.Password" 
+                        Label="Password" 
+                        Variant="Variant.Text" 
+                        InputType="@PasswordInput" 
+                        Adornment="Adornment.End" 
+                        AdornmentIcon="@PasswordInputIcon" 
+                        OnAdornmentClick="ButtonTestclick" 
+                        AdornmentAriaLabel="Show Password"
+                        For="@(() => user.Password)" />
+                    <MudTextField 
+                        @bind-Value="user.RepeatPassword" 
+                        Label="Repita su password" 
+                        Variant="Variant.Text" 
+                        InputType="@PasswordInput" 
+                        Adornment="Adornment.End" 
+                        AdornmentIcon="@PasswordInputIcon" 
+                        OnAdornmentClick="ButtonTestclick" 
+                        AdornmentAriaLabel="Show Password"
+                        For="@(() => user.RepeatPassword)" />
+                </MudStack>
+                <MudButton 
+                    ButtonType="ButtonType.Submit"
+                    Variant="Variant.Filled" 
+                    Color="Color.Primary" 
+                    Disabled="@ButtonDisabled" 
+                    Class="ma-2">
+                    @if (ButtonDisabled)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                        <MudText Class="ms-2">Procesando</MudText>
+                    }
+                    else
+                    {
+                        <MudText>Ingresar</MudText>
+                    }   
+                </MudButton>
+            </MudPaper>
+        </EditForm>
+    </MudItem>
+    <MudItem xs ="3"/>
+</MudGrid>
+
+
+@code
+{
+    NewUserData user = new();
+    string PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
+    InputType PasswordInput = InputType.Password;
+    bool isShow;
+    bool ButtonDisabled = false;
+    void ButtonTestclick()
+    {
+        @if (isShow)
+        {
+            isShow = false;
+            PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
+            PasswordInput = InputType.Password;
+        }
+        else {
+            isShow = true;
+            PasswordInputIcon = Icons.Material.Filled.Visibility;
+            PasswordInput = InputType.Text;
+        }
+    }
+
+    public async Task CreateUser()
+    {
+        ButtonDisabled = true;
+        //Call the create user method
+        var response = await HttpClient.PostAsJsonAsync<NewUserData>(NavigationManager.BaseUri + "Security/CreateUser",user);
+        if (!response.IsSuccessStatusCode)
+        {
+            Snackbar.Add("No se agrego el registro",Severity.Error);
+            ButtonDisabled = false;
+        }
+        else
+        {
+            Snackbar.Add("Registro agregado",Severity.Info);
+            NavigationManager.NavigateTo("\\");
+        }
+        //redirect to main page if created ok
+    }
+    public async Task DataValidated()
+    {
+        await CreateUser();
+    }
+}
