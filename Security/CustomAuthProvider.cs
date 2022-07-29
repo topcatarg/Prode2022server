@@ -25,7 +25,7 @@ namespace Prode2022Server.Security
             try 
             {
                 string accessToken = await _localStorageService.GetItemAsync<string>("accessToken"); 
-                ClaimsIdentity identity;
+                ClaimsIdentity identity = new ClaimsIdentity();
 
                 if (accessToken != null && accessToken != string.Empty)
                 {
@@ -36,20 +36,18 @@ namespace Prode2022Server.Security
                         accessToken = await _localStorageService.GetItemAsync<string>("refreshToken");
                         user = await securityServices.GetUserByRefreshTokenAsync(accessToken);
                         //If user is ok, has to make a new token and refresh.
-                        
+                        if (user.LoggedIn)
+                        {
+                            user.AccessToken = securityServices.GenerateAccessToken(user);
+                            user.RefreshToken = accessToken;
+                        }
                     }
                     if (user.LoggedIn)
                     {
                         identity = new(securityServices.GenerateClaimsForUser(user), "apiauth_type");
                     }
-                }
-                else
-                {
-                    identity = new ClaimsIdentity();
-                }          
-
+                }        
                 var claimsPrincipal = new ClaimsPrincipal(identity);            
-
                 return await Task.FromResult(new AuthenticationState(claimsPrincipal));
             }
             catch 

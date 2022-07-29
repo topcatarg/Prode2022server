@@ -2,6 +2,7 @@
 @using MudBlazor
 @using System.Security.Claims
 @inject IAuthorizationService authorizationService
+@using Prode2022Server.Helpers;
 
 <MudThemeProvider />
 <MudDialogProvider />
@@ -12,19 +13,24 @@
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
         <MudText Align="Align.Left">Prode 2022</MudText> 
         <MudSpacer />
-        @if (!IsUserAuthenticated)
-        {
-            <MudText Align="Align.Right" >
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/Login">Ingresar</MudButton>
-            </MudText>
-        }
-        else
-        {
-            <h3><b>@user.Identity.Name</b> is logged in!!!</h3>
-            <MudText Align="Align.Right" >
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/Logout">Salir</MudButton>
-            </MudText>
-        }
+        <AuthorizeView>
+            <Authorizing>
+                <MudText Align="Align.Right">
+                    ...autorizando
+                </MudText>
+            </Authorizing>
+            <Authorized>
+                <h3><b>@UserName</b> is logged in!!!</h3>
+                <MudText Align="Align.Right" >
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/Logout">Salir</MudButton>
+                </MudText>
+            </Authorized>
+            <NotAuthorized>
+                <MudText Align="Align.Right" >
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/Login">Ingresar</MudButton>
+                </MudText>
+            </NotAuthorized>
+        </AuthorizeView>
     </MudAppBar>
     <MudDrawer @bind-Open="@_drawerOpen">
         <MyNavMenu/>
@@ -44,11 +50,12 @@
     bool IsUserAuthenticated;
     bool IsPublisher;
     bool IsSeniorEmployee;
+    string UserName = "";
 
     protected override async Task OnInitializedAsync()
     {
         user = (await authenticationStateTask).User;
-
+        UserName = user.GetClaim(ClaimType.Name)??"";
         if (user.Identity.IsAuthenticated)
             IsUserAuthenticated = true;
 

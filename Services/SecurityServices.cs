@@ -172,28 +172,24 @@ values (@UserId, @Token, @Expiry)
         {
             UserLogin newUser = new();
             using SqliteConnection db = database.SimpleDbConnection();
-            int? UserID = await db.ExecuteScalarAsync<int?>(@"
-select UserId
-where Token = @Token
-    and 
-    ExpiryDate >= @date
-Limit 1",
-                new
-                {
-                    Token,
-                    date = DateTime.UtcNow
-                });
-            if (UserID.HasValue)
-            {
-                //Get the user by ID
-                newUser = await db.QueryFirstOrDefaultAsync<UserLogin>(@"
-select Password, Name, Admin as IsAdmin, Id
+            newUser = await db.QueryFirstOrDefaultAsync<UserLogin>(@"
+select Password, Name, Admin as IsAdmin, Id, Email
 from users
-where Id = @UserID",
-                new
-                {
-                    UserID
-                });
+where Id = (
+        select UserId
+        from RefreshTokens
+        where Token = @Token
+            and 
+            ExpiryDate >= @date
+        Limit 1)
+",
+            new
+            {
+                Token,
+                date = DateTime.UtcNow
+            });
+            if (newUser.Email != null)
+            {
                 newUser.LoggedIn = true;
             }
             return newUser;
