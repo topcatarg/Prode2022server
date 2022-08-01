@@ -3,7 +3,7 @@
 @using MudBlazor
 @using Prode2022Server.Models
 @using Prode2022Server.Shared.AdminFixture
-@attribute [Authorize]
+@attribute [Authorize(Policy = "ProfileIsAdmin")]
 
 <h1 class="ma-4">Administrar Fixture</h1>
 

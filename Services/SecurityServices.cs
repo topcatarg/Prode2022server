@@ -135,21 +135,9 @@ values (@UserId, @Token, @Expiry)
                         Id = principle.GetClaim<int>(ClaimType.Id),
                         Email = principle.GetClaim(ClaimType.Mail),
                         Name = principle.GetClaim(ClaimType.Name),
+                        IsAdmin = principle.GetClaim<int>(ClaimType.IsAdmin)==1?true:false,
                         LoggedIn = true
                     };
-                    /*
-                    
-                    UserLogin user = new();
-                    user.Id = principle.GetClaim<int>(ClaimType.Id);
-                    user.Email = principle.GetClaim(ClaimType.Mail),
-                    user.Name = principle.GetClaim(ClaimType.Name);
-                    return user;
-                    
-                    var userId = principle.FindFirst(ClaimType.Mail)?.Value;
-                    if (userId != null)
-                    {
-                        return await GetUserByRefreshToken(userId);
-                    }*/
                 }
             }
             catch (SecurityTokenExpiredException)
@@ -203,7 +191,8 @@ where Id = (
                 {
                     new Claim(ClaimType.Mail,User.Email!),
                     new Claim(ClaimType.Id,User.Id.ToString()),
-                    new Claim(ClaimType.Name, User.Name!)
+                    new Claim(ClaimType.Name, User.Name!),
+                    new Claim(ClaimType.IsAdmin, User.IsAdmin?"1":"0")
                 };
             }
             return new List<Claim>();
