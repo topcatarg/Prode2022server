@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Blazored.LocalStorage;
 using Prode2022Server.Models;
 using Prode2022Server.Helpers;
+using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,7 +28,14 @@ builder.Services.AddSingleton<SettingHelpers>();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthProvider>();
 builder.Services.AddScoped<UserServices>();
 builder.Services.AddBlazoredLocalStorage();
+//Authorization
+builder.Services.AddScoped<IAuthorizationHandler, ProfileHandler>();
 
+builder.Services.AddAuthorization(config =>
+        {
+            config.AddPolicy("ProfileIsAdmin", policy =>
+                policy.Requirements.Add(new ProfileIsAdmin()));
+        });
 //Notifiers
 builder.Services.AddScoped<CountriesListNotifier>();
 //builder.Services.AddScoped<IGenericListNotifier<>,GenericListNotifier<>>();

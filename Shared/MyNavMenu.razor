@@ -3,16 +3,18 @@
 <MudNavMenu>
     <MudNavLink Href="/" Match="NavLinkMatch.All">Resultados</MudNavLink>
     <AuthorizeView>
-    <MudNavLink Href="/Pronosticos" Match="NavLinkMatch.All">Pronosticos</MudNavLink>
-    <MudNavLink Href="/Posiciones" Match="NavLinkMatch.All">Posiciones</MudNavLink>
+        <MudNavLink Href="/Pronosticos" Match="NavLinkMatch.All">Pronosticos</MudNavLink>
+        <MudNavLink Href="/Posiciones" Match="NavLinkMatch.All">Posiciones</MudNavLink>
         <MudNavLink Href="/Datos" Match="NavLinkMatch.All">Tus datos</MudNavLink>
+    </AuthorizeView>
+    <AuthorizeView Policy="ProfileIsAdmin">
         <MudNavGroup Title="Administracion" Expanded="false">
             <MudNavLink Href="/Countriesadmin">Administrar paises</MudNavLink>
             <MudNavLink Href="/Fixtureadmin">Administrar fixture</MudNavLink>
             <MudNavLink Href="/FixtureGroupsAdmin">Administrar grupos de fixture</MudNavLink>
             <MudNavLink Href="/ResultsAdmin">Administrar resultados</MudNavLink>
         </MudNavGroup>
-    </AuthorizeView>
+    </AuthorizeView>   
     <MudNavLink Href="/Reglamento" Match="NavLinkMatch.All">Reglamento</MudNavLink>
     <MudNavLink Href="/Sobre"  Match="NavLinkMatch.Prefix">Sobre esto...</MudNavLink>
 </MudNavMenu>     

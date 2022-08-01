@@ -64,7 +64,7 @@ namespace Prode2022Server.Security
             await _localStorageService.SetItemAsync("accessToken", user.AccessToken);
             await _localStorageService.SetItemAsync("refreshToken", user.RefreshToken);
 
-            var identity = GetClaimsIdentity(user);
+            ClaimsIdentity identity = new(securityServices.GenerateClaimsForUser(user), "apiauth_type");
 
             var claimsPrincipal = new ClaimsPrincipal(identity);
 
