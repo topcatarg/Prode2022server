@@ -1,0 +1,72 @@
+@using Prode2022Server.Models
+@using Prode2022Server.Services
+@using System.Collections.Immutable
+@inject FixtureService fixtureService
+@inject IGenericListNotifier<FixtureGroups> GenericNotifier
+
+<h3>Resultados</h3>
+@if(Loading)
+{
+    <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+}
+else
+{
+    @foreach (var item in ShowedList)
+    {
+        <MudCard Outlined="true" class="ma-4 rounded-pill justify-center">
+            <MudCardContent>
+                <h3 class="d-inline ma-4">@item.StageName</h3>           
+                <h4 class="d-inline ma-4">@item.Date</h4>
+                <h2 class="d-inline">@item.Team1Name</h2> 
+                <MudImage Elevation="25" Class="rounded-lg" Src="@($"Images/{@item.Team1Flag}.png")"/>
+                <h2 class="d-inline ma-4">@item.Team1Goals</h2> 
+                <h2 class="d-inline">-</h2> 
+                <h2 class="d-inline ma-4">@item.Team2Goals</h2> 
+                <MudImage Elevation="25" Class="rounded-lg" Src="@($"Images/{@item.Team2Flag}.png")"/>
+                <h2 class="d-inline">@item.Team2Name</h2> 
+            </MudCardContent>
+        </MudCard>
+    }
+}
+
+@code
+{
+    bool Loading = true;
+    ImmutableArray<MatchResultView> MatchList;
+    ImmutableArray<MatchResultView> ShowedList;
+    protected override async Task OnInitializedAsync()
+    {
+        MatchList = await fixtureService.GetMatchsResults();
+        ShowedList = MatchList;
+        await InvokeAsync(() =>
+        {
+            StateHasChanged();
+        }); 
+        Loading = false;
+        GenericNotifier.NotifyList += ChangeSelection;
+    }
+
+    public void Dispose()
+    {
+        GenericNotifier.NotifyList -= ChangeSelection;
+    }
+
+    public async Task ChangeSelection()
+    {
+        if (GenericNotifier.data == null)
+        {
+            return;
+        }
+        int group = GenericNotifier.data.ID;
+        if (group == 0)
+        {
+            ShowedList = MatchList;
+        }
+        else
+        {
+            ShowedList = MatchList.Where(x => x.StageId == group.ToString()).ToImmutableArray();
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+}

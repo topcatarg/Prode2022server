@@ -47,20 +47,12 @@
     private Task<AuthenticationState> authenticationStateTask { get; set; }
     ClaimsPrincipal user;
 
-    bool IsUserAuthenticated;
-    bool IsPublisher;
-    bool IsSeniorEmployee;
     string UserName = "";
 
     protected override async Task OnInitializedAsync()
     {
         user = (await authenticationStateTask).User;
         UserName = user.GetClaim(ClaimType.Name)??"";
-        if (user.Identity.IsAuthenticated)
-            IsUserAuthenticated = true;
-
-        if (user.IsInRole("Publisher"))
-            IsPublisher = true;
 
         /*if ((await authorizationService.AuthorizeAsync(user, "SeniorEmployee")).Succeeded)
             IsSeniorEmployee = true;*/
