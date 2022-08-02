@@ -1,0 +1,65 @@
+@using Prode2022Server.Models
+
+<MudPaper>
+    <MudText Typo="Typo.h5" style="@($"color:{Colors.Indigo.Darken4};")" class="pa-4">Los torneos que administras</MudText>
+    <MudPaper>
+        <MudText Typo="Typo.h6" style="@($"color:{Colors.Indigo.Darken4};")" class="pa-4">Crear un torneo</MudText>
+        <EditForm Model="@tournament" OnValidSubmit="DataValidated">
+            <DataAnnotationsValidator />
+            <MudPaper Class="pa-2 ma-2" Outlined="true">
+                <MudTextField 
+                    @bind-Value="tournament.Name" 
+                        Label="Nombre del grupo" 
+                        Variant="Variant.Text" 
+                        For="@(() => tournament.Name)"/>
+        <MudButton 
+            ButtonType="ButtonType.Submit"
+            Variant="Variant.Filled" 
+            Color="Color.Primary" 
+            Disabled="@ButtonDisabled" 
+            Class="ma-2">
+            @if (ButtonDisabled)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                <MudText Class="ms-2">Procesando</MudText>
+            }
+            else
+            {
+                <MudText>@ButtonText</MudText>
+            }   
+        </MudButton>
+    </MudPaper>
+        </EditForm>
+    </MudPaper>
+    
+</MudPaper>
+
+@code
+{
+    Tournament tournament = new();
+    bool ButtonDisabled = false;
+    public async Task DataValidated()
+    {
+        await Add();
+    }
+
+    public async Task Add()
+    {
+        ButtonDisabled = true;
+        var response = await HttpClient.PostAsJsonAsync<FixtureGroups>(NavigationManager.BaseUri + "DataAdmin/UpSertFixtureGroups",ActiveFixtureGroup);
+        if (!response.IsSuccessStatusCode)
+        {
+            Snackbar.Add("No se agrego el registro",Severity.Error);
+        }
+        else
+        {
+            Snackbar.Add("Registro agregado",Severity.Info);
+        }
+        //await Task.Delay(2000);
+        ActiveFixtureGroup = new();
+        await GenericNotifier.ChangeData();
+        ButtonText = "Agregar";
+        StateHasChanged();
+        ButtonDisabled = false;
+    }
+}
