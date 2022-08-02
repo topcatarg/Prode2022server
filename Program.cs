@@ -23,6 +23,9 @@ builder.Services.AddSingleton<DbService>();
 builder.Services.AddSingleton<DataAdminServices>();
 builder.Services.AddSingleton<SecurityServices>();
 builder.Services.AddSingleton<SettingHelpers>();
+
+//Add services as DI
+builder.Services.AddSingleton<FixtureService>();
 //authentication
 
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthProvider>();
