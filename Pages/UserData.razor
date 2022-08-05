@@ -1,0 +1,14 @@
+@page "/Datos"
+@using Prode2022Server.Shared.UserData
+@attribute [Authorize]
+
+<MudText class="pa-4">Tus Datos</MudText> 
+
+<MudTabs Elevation="4" Rounded="true" Centered="true" Color="@Color.Primary">
+    <MudTabPanel Text="Datos"/>
+    <MudTabPanel Text="Torneos">
+        <TournamentsAdminList/>
+        <TournamentsAdminEdit/>
+    </MudTabPanel>
+    <MudTabPanel Text="Equipos"/>
+</MudTabs>

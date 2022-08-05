@@ -1,0 +1,114 @@
+@using Prode2022Server.Models
+@using Prode2022Server.Services
+@using Prode2022Server.Helpers
+@using System.Security.Claims
+@inject IGenericListNotifier<Tournament> GenericNotifier
+@inject ISnackbar Snackbar
+@inject TournamentsServices tournamentsServices
+
+<MudPaper>
+    <MudText Typo="Typo.h6" style="@($"color:{Colors.Indigo.Darken4};")" class="pa-4">
+            Crear un torneo
+    </MudText>
+    <EditForm Model="@tournament" OnValidSubmit="DataValidated">
+        <DataAnnotationsValidator />
+        <MudPaper Class="pa-2 ma-2" Outlined="true">
+            <MudTextField 
+                @bind-Value="tournament.Name" 
+                Label="Nombre del torneo" 
+                Variant="Variant.Text" 
+                For="@(() => tournament.Name)"/>
+            <MudTextField 
+                @bind-Value="tournament.Password" 
+                Label="Password del torneo (vacio para un torneo publico)" 
+                Variant="Variant.Text"/>
+            <MudButton 
+                ButtonType="ButtonType.Submit"
+                Variant="Variant.Filled" 
+                Color="Color.Primary" 
+                Disabled="@ButtonDisabled" 
+                Class="ma-2">
+                @if (ButtonDisabled)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                    <MudText Class="ms-2">Procesando</MudText>
+                }
+                else
+                {
+                    <MudText>@ButtonText</MudText>
+                }   
+            </MudButton>
+        </MudPaper>
+    </EditForm>
+</MudPaper>
+
+@code
+{
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    ClaimsPrincipal? user;
+    int UserId = 0;
+
+    Tournament tournament = new();
+    bool ButtonDisabled = false;
+    string ButtonText = "Agregar";
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = (await authenticationStateTask).User;
+        UserId = user.GetClaim<int>(ClaimType.Id);
+    }
+
+    public async Task DataValidated()
+    {
+        await Add();
+    }
+
+    public async Task Add()
+    {
+        ButtonDisabled = true;
+        tournament.AdministratorId = UserId;
+        string response = await tournamentsServices.CreateTournaments(tournament);
+        if (!response.IsNullOrEmpty())
+        {
+            Snackbar.Add(response,Severity.Error);
+        }
+        else
+        {
+            Snackbar.Add("Registro agregado",Severity.Info);
+        }
+        tournament = new();
+        await GenericNotifier.ChangeData();
+        ButtonText = "Agregar";
+        StateHasChanged();
+        ButtonDisabled = false;
+    }
+
+    public async Task OnNotify()
+    {
+        if (GenericNotifier.data != null)
+        {
+            tournament = GenericNotifier.data;
+            ButtonText = "Actualizar";
+        }
+        else
+        {
+            tournament = new();
+            ButtonText = "Agregar";
+        }
+        await InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+    protected override void OnInitialized()
+    {
+        GenericNotifier.NotifyDataControl += OnNotify;
+    }
+
+
+    public void Dispose()
+    {
+        GenericNotifier.NotifyDataControl -= OnNotify;
+    }
+}
