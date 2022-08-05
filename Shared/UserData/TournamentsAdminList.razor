@@ -1,0 +1,143 @@
+@using Prode2022Server.Models
+@using Prode2022Server.Services
+@using Prode2022Server.Helpers
+@using System.Security.Claims
+@inject IGenericListNotifier<Tournament> GenericNotifier
+@inject ISnackbar Snackbar
+@inject TournamentsServices tournamentsServices
+
+@if (TournamentsList == null || TournamentsList.Count == 0)
+{
+    <MudText> No hay datos... (una pena)</MudText>
+}
+else
+{
+    <MudTable Items="@TournamentsList" Hover="true" Breakpoint="Breakpoint.Sm" 
+    Loading="@Loading" 
+    LoadingProgressColor="Color.Info"
+    RowClassFunc="@SelectedRowClassFunc"
+    OnRowClick="RowClickEvent"
+    T="Tournament"
+    @ref="TournamentsTable">
+    <HeaderContent>
+        <MudTh>ID</MudTh>
+        <MudTh>Torneo</MudTh>
+        <MudTh>Password</MudTh>
+        <MudTh>Utilidades</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="ID">@context.Id</MudTd>
+        <MudTd DataLabel="Nombre">@context.Name</MudTd>
+        <MudTd DataLabel="Password">@context.Password</MudTd>
+        <MudTd >
+            <MudTooltip Text="Eliminar">
+                <MudIconButton 
+                    Icon="@Icons.Material.Filled.Delete" 
+                    aria-label="delete"
+                    OnClick="() => DeleteRow(context)" />
+            </MudTooltip>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+}
+
+
+<style>
+    .selected {
+    background-color: #1E88E5 !important;
+}
+
+    .selected > td {
+        color: white !important;
+    }
+
+        .selected > td .mud-input {
+            color: white !important;
+        }
+</style>
+
+@code
+{
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    ClaimsPrincipal? user;
+    int UserId = 0;
+    List<Tournament> TournamentsList = new();
+    bool Loading = true;
+    private MudTable<Tournament>? TournamentsTable;
+    int selectedId = -1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = (await authenticationStateTask).User;
+        UserId = user.GetClaim<int>(ClaimType.Id);
+        await LoadTournaments();
+        GenericNotifier.NotifyList += LoadTournaments;
+    }
+
+    public void Dispose()
+    {
+        GenericNotifier.NotifyDataControl -= LoadTournaments;
+    }
+
+
+    public async Task LoadTournaments()
+    {
+        Loading = true;
+        TournamentsList = await tournamentsServices.GetUserAdministrateTournaments(UserId);        
+        Loading = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void RowClickEvent(TableRowClickEventArgs<Tournament> tableRowClickEventArgs)
+    {
+        Tournament selectedRow; 
+
+        if (TournamentsTable != null && TournamentsTable.SelectedItem != null)
+        {
+            selectedRow = tableRowClickEventArgs.Item;
+            if(selectedId == selectedRow.Id)
+            {
+                //clicked on the same, deselect
+                await GenericNotifier.ChangeRow(null);
+            }
+            else
+            {
+                await GenericNotifier.ChangeRow(tableRowClickEventArgs.Item);
+            }
+        }
+    }
+    private string SelectedRowClassFunc(Tournament element, int rowNumber)
+    {
+        if (selectedId == element.Id)
+        {
+            selectedId = -1;
+
+            return string.Empty;
+        }
+        else if (TournamentsTable!.SelectedItem != null && TournamentsTable.SelectedItem.Equals(element))
+        {
+            selectedId = element.Id;
+            return "selected";
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
+    private async void DeleteRow(Tournament c)
+    {
+        string response = await tournamentsServices.DeleteTournament(c);
+        if (!response.IsNullOrEmpty())
+        {
+            Snackbar.Add(response, Severity.Error);
+        }
+        else
+        {
+            Snackbar.Add("Fila eliminada correctamente", Severity.Info);
+        }
+        await LoadTournaments();
+    }
+        
+}

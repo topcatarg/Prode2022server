@@ -18,9 +18,18 @@ public class TournamentsServices
     /// </summary>
     /// <param name="User"></param>
     /// <returns>a list of tournaments administrates by this user</returns>
-    public async Task GetUserAdministrateTournaments(int User)
+    public async Task<List<Tournament>> GetUserAdministrateTournaments(int User)
     {
-
+        using SqliteConnection db = database.SimpleDbConnection();
+        var v = await db.QueryAsync<Tournament>(@"
+select * 
+from tournaments
+where AdministratorId = @Id",
+        new
+        {
+            Id = User,
+        });
+        return v.ToList();
     }
 
     /// <summary>
@@ -31,21 +40,55 @@ public class TournamentsServices
     public async Task<string> CreateTournaments(Tournament tournament)
     {
         using SqliteConnection db = database.SimpleDbConnection();
-        int result = await db.ExecuteAsync(@"
+        int result = 0;
+        try
+        {
+            result = await db.ExecuteAsync(@"
 Insert into tournaments (Name, Password, AdministratorId)
 values
     (@Name, @Password, @AdministratorId)
 ",
-            new
-            {
-                tournament.Name,
-                tournament.Password,
-                tournament.AdministratorId
-            });
+                new
+                {
+                    tournament.Name,
+                    tournament.Password,
+                    tournament.AdministratorId
+                });
+        }
+        catch
+        {}
         if (result == 0)
         {
             return "Ya existe un torneo con ese nombre";
         }
         return "";
     }
+
+    public async Task<string> DeleteTournament(Tournament tournament)
+    {
+        using SqliteConnection db = database.SimpleDbConnection();
+        int result = 0;
+        result = await db.ExecuteScalarAsync<int>(@"
+select count(*) 
+from TournamentsUserTeams
+where TournamentId = @Id
+            ", new
+            {
+                tournament.Id
+            });
+        if (result >= 0)
+        {
+            return "No se puede borrar un torneo con usuarios";
+        }    
+        result = await db.ExecuteAsync(@"
+delete from tournaments
+where Id = @Id",
+            new
+            {
+                tournament.Id
+            });        
+        return "";
+    }
+
+
 }
