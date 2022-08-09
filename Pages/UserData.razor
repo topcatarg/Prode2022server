@@ -5,12 +5,14 @@
 <MudText class="pa-4">Tus Datos</MudText> 
 
 <MudTabs Elevation="4" Rounded="true" Centered="true" Color="@Color.Primary">
-    <MudTabPanel Text="Datos"/>
-        <UserTeamAdminList/>
-        <UserTeamAdminEdit/>
+    <MudTabPanel Text="Datos">
+        
+    </MudTabPanel>
     <MudTabPanel Text="Torneos">
         <TournamentsAdminList/>
         <TournamentsAdminEdit/>
     </MudTabPanel>
-    <MudTabPanel Text="Equipos"/>
+    <MudTabPanel Text="Equipos">
+        <UserTeamAdminEdit/>
+    </MudTabPanel>
 </MudTabs>
