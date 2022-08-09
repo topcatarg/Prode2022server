@@ -1,0 +1,231 @@
+﻿@using Prode2022Server.Models.UserData
+@using Prode2022Server.Helpers
+@using System.Security.Claims
+@using Prode2022Server.Services
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject TournamentsServices tournamentsServices
+
+<MudText Typo="Typo.h5" style="@($"color:{Colors.Indigo.Darken4};")" class="pa-2" >Torneos en los que participas </MudText>
+
+@if (userTournamentsList == null || userTournamentsList.Count == 0)
+{
+    <MudText> No esta inscripto en ningun torneo</MudText>
+}
+else
+{
+    <MudTable Items="@userTournamentsList" Hover="true" Breakpoint="Breakpoint.Sm" 
+    Loading="@Loading" 
+    LoadingProgressColor="Color.Info"
+    T="UserTournament"
+    Dense="true">
+        <HeaderContent>
+            <MudTh>Torneo</MudTh>
+            <MudTh>Nombre del equipo</MudTh>
+            <MudTh>Utilidades</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="ID">@context.TournamentName</MudTd>
+            <MudTd DataLabel="Nombre">@context.TeamName</MudTd>
+            <MudTd >
+                <MudTooltip Text="Eliminar">
+                    <MudIconButton 
+                        Icon="@Icons.Material.Filled.Delete" 
+                        aria-label="delete"
+                        OnClick="() => DeleteRow(context)" />
+                </MudTooltip>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+<MudText Typo="Typo.h5" style="@($"color:{Colors.Indigo.Darken4};")" class="pa-2">Otros torneos </MudText>
+
+@if (otherTournamentsList == null || otherTournamentsList.Count == 0)
+{
+    <MudText> No existen torneos a los cuales incribirse</MudText>
+}
+else
+{
+    <MudTable Items="@otherTournamentsList" Hover="true" Breakpoint="Breakpoint.Sm" 
+    Loading="@Loading" 
+    LoadingProgressColor="Color.Info"
+    T="UserTournament"
+    Dense="true">
+    <HeaderContent>
+        <MudTh>Torneo</MudTh>
+        <MudTh>Con password</MudTh>
+        <MudTh>Utilidades</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="ID">@context.TournamentName</MudTd>
+        <MudTd DataLabel="Password">
+        @if(@context.HasPassword)
+        {
+            <MudText>Si</MudText>
+        }
+        else
+        {
+            <MudText>No</MudText>
+        }
+        </MudTd>
+        <MudTd >
+            <MudTooltip Text="Inscribirse con un nuevo equipo">
+                <MudIconButton 
+                    Icon="@Icons.Filled.Edit" 
+                    aria-label="Inscribirse"
+                    OnClick="() => BeginRegister(context)" />
+            </MudTooltip>
+        </MudTd>
+    </RowTemplate>
+    </MudTable>
+}
+
+<MudDialog @bind-IsVisible="@DialogVisible" Options="dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            Ingrese nombre del equipo y password
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (ProcessingRequest)
+        {
+            <MudProgressLinear Color="Color.Primary" Value="@ProgressValue" Class="my-7" />
+        }
+        else
+        {
+            <EditForm Model="@userTournament" OnValidSubmit="() => Submit(true)">
+                <DataAnnotationsValidator />
+                <MudPaper Class="pa-2 ma-2" Outlined="true">
+                    <MudTextField 
+                        @bind-Value="userTournament.TeamName" 
+                        Label="Nombre del equipo" 
+                        Variant="Variant.Text" 
+                        For="@(() => userTournament.TeamName)"/>
+                    <MudTextField 
+                        @bind-Value="userTournament.UserPassword" 
+                        Label="Password del torneo (vacio para un torneo publico)" 
+                        Variant="Variant.Text"/>
+                    <MudButton 
+                        Variant="Variant.Filled" 
+                        Color="Color.Primary" 
+                        ButtonType="ButtonType.Submit"
+                        Class="px-10 ma-4">
+                        Guardar
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="() => Submit(false)" Class="px-10 ma-4">Cancelar</MudButton>
+                </MudPaper>
+            </EditForm>
+        }
+    </DialogContent>
+</MudDialog>
+@code
+{
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    ClaimsPrincipal? user;
+    int UserId = 0;
+    private List<UserTournament>? userTournamentsList;
+    private List<UserTournament>? otherTournamentsList;
+    bool Loading = false;
+    private bool DialogVisible = false;
+    private DialogOptions dialogOptions = new() { FullWidth = true };
+    private UserTournament userTournament = new();
+    private bool ProcessingRequest = false;
+    private int ProgressValue = 0;
+    protected override async Task OnInitializedAsync()
+    {
+        Loading = true;
+        user = (await authenticationStateTask).User;
+        UserId = user.GetClaim<int>(ClaimType.Id);
+        await LoadUserTournaments();
+        await LoadOtherTournaments();
+        Loading = false;
+        //GenericNotifier.NotifyList += LoadTournaments;
+    }
+
+    public async Task LoadUserTournaments()
+    {
+        userTournamentsList = await tournamentsServices.GetUserTournamentsAsync(UserId);
+    }
+
+    public async Task LoadOtherTournaments()
+    {
+        otherTournamentsList = await tournamentsServices.GetOtherTournamentsForUserAsync(UserId);
+    }
+
+    public async Task DeleteRow(UserTournament u)
+    {
+
+    }
+
+    public void BeginRegister(UserTournament u)
+    {
+        userTournament = u;
+        userTournament.UserId = UserId;
+        DialogVisible = true;
+        //string resul = await tournamentsServices.RegisterUserInTournament(userTournament);
+    }
+
+    public async Task Submit(bool IsOk)
+    {
+        string resul = "";
+        if (IsOk)
+        {
+            ProgressValue = 0;
+            ProcessingRequest = true;
+            resul = CheckTournamentPassword();
+            if (resul.IsNullOrEmpty())
+            {
+                MakeProgress();
+                //Insert the team for this user.
+                var state = await tournamentsServices.CreateTeamAsync(userTournament);
+                resul = state.error;
+                userTournament.UserTeamId = state.NewId;
+            }
+            if (resul.IsNullOrEmpty())
+            {
+                MakeProgress();
+                //Insert the team into the tournament and create the results for the team
+                resul = await tournamentsServices.RegisterUserInTournamentAsync(userTournament);
+            }
+            //Check password
+            if (resul.IsNullOrEmpty())
+            {
+                Snackbar.Add("ingreso correctamente", Severity.Success);
+                Loading = true;
+                await LoadUserTournaments();
+                await LoadOtherTournaments();
+                StateHasChanged();
+                Loading = false;
+            }
+            else
+            {
+                Snackbar.Add(resul, Severity.Error);
+            }
+        }
+        else
+        {
+            Snackbar.Add("Cancelaste el ingreso", Severity.Info);
+        }
+        ProgressValue = 0;
+        ProcessingRequest = false;
+        userTournament = new();
+        DialogVisible = false;
+    }
+
+    private string CheckTournamentPassword()
+    {
+        if (userTournament.HasPassword && userTournament.UserPassword != userTournament.Password)
+        {
+            return "La password esta equivocada";
+        }   
+        return "";
+    }
+
+    private void MakeProgress()
+    {
+        ProgressValue+=25;
+        StateHasChanged();
+    }
+}

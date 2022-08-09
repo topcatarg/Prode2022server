@@ -3,6 +3,7 @@ namespace Prode2022Server.Services;
 using Dapper;
 using Microsoft.Data.Sqlite;
 using Prode2022Server.Models;
+using Prode2022Server.Models.UserData;
 public class TournamentsServices
 {
 
@@ -90,5 +91,100 @@ where Id = @Id",
         return "";
     }
 
+    /// <summary>
+    /// Get the list of tournaments the user is enrolled on.
+    /// </summary>
+    /// <param name="UserId">User Id</param>
+    /// <returns>The list of tournaments</returns>
+    public async Task<List<UserTournament>> GetUserTournamentsAsync(int UserId)
+    {
+        using SqliteConnection db = database.SimpleDbConnection();
+        var v = await db.QueryAsync<UserTournament>(@"
+select T.Id, U.TeamName as TeamName, TU.Name as TournamentName
+from TournamentsUserTeams T 
+    inner join UserTeams U on U.Id = T.UserTeamId 
+    inner join Tournaments TU on T.TournamentId = TU.Id
+where U.UserId = @Id",
+        new
+        {
+            Id = UserId,
+        });
+        return v.ToList();
+    }
 
+    public async Task<List<UserTournament>> GetOtherTournamentsForUserAsync(int UserId)
+    {
+        using SqliteConnection db = database.SimpleDbConnection();
+        var v = await db.QueryAsync<UserTournament>(@"
+select id as TournamentId, Name as TournamentName, Password
+from Tournaments 
+where Id not in (select TournamentId from TournamentsUserTeams TU inner join UserTeams U on U.Id = TU.UserTeamId where U.UserId = @Id)",
+        new
+        {
+            Id = UserId,
+        });
+        return v.ToList();
+    }
+
+    public async Task<(string error, int NewId)> CreateTeamAsync(UserTournament userTournament)
+    {
+        using SqliteConnection db = database.SimpleDbConnection();
+        int result = 0;
+        try
+        {
+            result = await db.ExecuteAsync(@"
+insert into UserTeams (TeamName, UserId)
+values
+    (@TeamName, @UserId)",
+                new
+                {
+                    userTournament.TeamName,
+                    userTournament.UserId
+                });
+            result = await db.ExecuteScalarAsync<int>(@"
+select last_insert_rowid()");
+        }
+        catch
+        {}
+        if (result == 0)
+        {
+            return new(
+                "El nombre de equipo ya existe.",
+                0
+            );
+        }
+        return new("", result);
+    }
+
+    public async Task<string> RegisterUserInTournamentAsync(UserTournament userTournament)
+    {
+        using SqliteConnection db = database.SimpleDbConnection();
+        int result = 0;
+        try
+        {
+            result = await db.ExecuteAsync(@"
+Insert into TournamentsUserTeams (TournamentId, UserTeamId)
+values
+    (@TournamentId, @UserTeamId)",
+                new
+                {
+                    userTournament.TournamentId,
+                    userTournament.UserTeamId
+                });
+            result = await db.ExecuteAsync(@"
+insert into UserForecast (TeamId, MatchId)
+select @UserTeamId, Id from Matches",
+                new
+                {
+                    userTournament.UserTeamId
+                });
+        }
+        catch
+        {}
+        if (result == 0)
+        {
+            return "Ocurrio un error al inscribirse en el torneo.";
+        }
+        return "";
+    }
 }
