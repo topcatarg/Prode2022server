@@ -1,6 +1,17 @@
 @page "/Login"
 @using Prode2022Server.Shared.Login
 
+<MudContainer MaxWidth="MaxWidth.Small" class="d-flex">
+    <Login/>
+    <MudPaper>
+        <MudStack>
+            <MudText>Otros metodos de ingreso</MudText>
+            <MudButton>Ingresar con Google</MudButton>
+        </MudStack>
+    </MudPaper>
+    <MudPaper Class="pa-16 ma-2" Elevation="3"></MudPaper>
+    <MudPaper Class="pa-16 ma-2" Elevation="3"></MudPaper>
+</MudContainer>
 <MudGrid Justify="Justify.Center" Class="pa-16 ma-2">
     <MudItem xs="3"/>
     <MudItem xs="3">
