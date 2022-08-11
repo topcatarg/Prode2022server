@@ -1,2 +1,71 @@
 @page "/SobreEsto"
 
+<MudContainer Class="pa-4">
+    <MudTabs Elevation="2" Rounded="true" Centered="true" Color="@Color.Primary">
+        <MudTabPanel Text="Novedades">
+            <MudContainer MaxWidth="MaxWidth.Medium">
+                <MudPaper>
+                    <MudTimeline TimelineAlign="TimelineAlign.Start">
+                        <MudTimelineItem Color="Color.Secondary" Elevation="25">
+                            <ItemOpposite>
+                                <MudText Color="Color.Secondary" Typo="Typo.h6">Version 0.12</MudText>
+                            </ItemOpposite>
+                            <ItemContent>
+                                <MudPaper Elevation="0" Class="mt-n1">
+                                    <MudText Typo="Typo.body2">Se arreglo pantalla de login para celulares</MudText>
+                                    <MudText Typo="Typo.body2">Se creo la pantalla de reglamento, y esta misma.</MudText>
+                                    <MudText Typo="Typo.body2">Se agregaron preguntas frecuentes.</MudText>
+                                </MudPaper>
+                            </ItemContent>
+                        </MudTimelineItem>
+                    </MudTimeline>
+                    <MudTimeline TimelineAlign="TimelineAlign.Start">
+                        <MudTimelineItem Color="Color.Secondary" Elevation="25">
+                            <ItemOpposite>
+                                <MudText Color="Color.Secondary" Typo="Typo.h6">Version 0.11</MudText>
+                            </ItemOpposite>
+                            <ItemContent>
+                                <MudPaper Elevation="0" Class="mt-n1">
+                                    <MudText Typo="Typo.body2">Se pueden crear usuarios</MudText>
+                                    <MudText Typo="Typo.body2">Se pueden crear torneos</MudText>
+                                    <MudText Typo="Typo.body2">Se pueden inscribir equipos en los torneos</MudText>
+                                </MudPaper>
+                            </ItemContent>
+                        </MudTimelineItem>
+                    </MudTimeline>
+                    <MudTimeline TimelineAlign="TimelineAlign.Start">
+                        <MudTimelineItem Color="Color.Secondary" Elevation="25">
+                            <ItemOpposite>
+                                <MudText Color="Color.Secondary" Typo="Typo.h6">Version 0.10</MudText>
+                            </ItemOpposite>
+                            <ItemContent>
+                                <MudPaper Elevation="0" Class="mt-n1">
+                                    <MudText Typo="Typo.body2">Se genero el sitio</MudText>
+                                </MudPaper>
+                            </ItemContent>
+                        </MudTimelineItem>
+                    </MudTimeline>
+                    <MudText Align="Align.Right">Version 0.12</MudText>
+                </MudPaper>
+            </MudContainer>
+        </MudTabPanel>
+        <MudTabPanel Text="Preguntas y respuestas">
+            <MudExpansionPanels>
+                <MudExpansionPanel>
+                    <TitleContent>
+                        <div class="d-flex">
+                            <MudIcon Icon="@Icons.Material.Filled.Info" class="mr-3"></MudIcon>
+                            <MudText>¿Donde esta el codigo de la aplicación?</MudText>
+                        </div>
+                    </TitleContent>
+                    <ChildContent>
+                        Si queres ayudar revisando el codigo, o solamente queres mirar como es, el codigo esta
+                        <MudLink Href="https://github.com/topcatarg/Prode2022server">
+                            aca
+                        </MudLink>
+                    </ChildContent>
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+        </MudTabPanel>
+    </MudTabs>
+</MudContainer>
