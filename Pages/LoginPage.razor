@@ -1,38 +1,28 @@
 @page "/Login"
 @using Prode2022Server.Shared.Login
 
-<MudGrid Justify="Justify.Center" Class="pa-16 ma-2">
-    <MudItem xs="3"/>
-    <MudItem xs="3">
+<MudContainer MaxWidth="MaxWidth.Small" class="d-flex flex-wrap mt-4">
+    <MudPaper>
         <Login/>
-    </MudItem>
-    <MudItem xs="3">
-        <MudPaper>
-            <MudStack>
-                <MudText>Otros metodos de ingreso</MudText>
-                <MudButton>Ingresar con Google</MudButton>
-            </MudStack>
-        </MudPaper>
-    </MudItem>
-    <MudItem xs="3"/>
-    <MudItem xs="3"/>
-    <MudItem xs="6" >
-        <MudPaper  class="align-center justify-center " >
-            <MudText>Olvide mi clave</MudText>
-        </MudPaper>
-    </MudItem>
-    <MudItem xs="3"/>
-    <MudItem xs="3"/>
-    <MudItem xs="6" >
-        <MudPaper  class="align-center justify-center " >
-            <MudText Align="Align.Center">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/NewUser" >
-                    Crear usuario
-                </MudButton>
-            </MudText>        
-        </MudPaper>
-    </MudItem>
-    <MudItem xs="3"/>
-</MudGrid>
+    </MudPaper>
+    <MudPaper>
+        <MudStack Class="ml-2">
+            <MudText>Otros metodos de ingreso</MudText>
+            <MudButton>Ingresar con Google</MudButton>
+        </MudStack>
+    </MudPaper>
+</MudContainer>
+<MudContainer MaxWidth="MaxWidth.Small" Class="d-flex flex-wrap flex-column mt-2">
+    <MudPaper  class="align-center justify-center " >
+        <MudText>Olvide mi clave</MudText>
+    </MudPaper>
+    <MudPaper  class="align-center justify-center " >
+        <MudText Align="Align.Center">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/NewUser" >
+                Crear usuario
+            </MudButton>
+        </MudText>        
+    </MudPaper>
+</MudContainer>
 
 
