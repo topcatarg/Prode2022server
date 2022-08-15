@@ -1,0 +1,45 @@
+﻿@using Prode2022Server.Models
+@using Prode2022Server.Services
+@using System.Collections.Immutable 
+@inject FixtureService fixtureService
+@inject IGenericListNotifier<FixtureGroups> GenericNotifier
+
+@if(Loading)
+{
+    <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+}
+else
+{
+    <MudChipSet Filter="true" Mandatory="true" SelectedChipChanged="ChangeChip">
+        <MudChip Color="Color.Primary" Text="0" Default="true">Proximos</MudChip>
+        @foreach (var item in groupList)
+        {
+            <MudChip Color="Color.Primary" Text="@item.ID.ToString()">@item.GroupName</MudChip>
+        }
+    </MudChipSet>
+}
+
+@code
+{
+    bool Loading = true;
+    ImmutableArray<FixtureGroups> groupList;
+    protected override async Task OnInitializedAsync()
+    {
+        groupList = await fixtureService.GetAllGroups();
+        await InvokeAsync(() =>
+        {
+            StateHasChanged();
+        }); 
+        Loading = false;
+    }
+
+    private async Task ChangeChip(MudChip chip)
+    {
+        FixtureGroups f = new()
+        {
+            ID = int.Parse(chip.Text)
+        };
+        GenericNotifier.data = f;
+        await GenericNotifier.ChangeData();
+    }
+}
