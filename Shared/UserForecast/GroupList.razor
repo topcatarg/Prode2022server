@@ -1,31 +1,87 @@
-﻿@using Prode2022Server.Models
+﻿@using Prode2022Server.Models.UserForecast
 @using Prode2022Server.Services
 @using System.Collections.Immutable 
-@inject FixtureService fixtureService
-@inject IGenericListNotifier<FixtureGroups> GenericNotifier
+@using System.Security.Claims
+@using Prode2022Server.Helpers
+@inject ForecastService forecastService
+@inject IGenericListNotifier<FiltersNotifier> GenericNotifier
 
-@if(Loading)
-{
-    <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
-}
-else
-{
-    <MudChipSet Filter="true" Mandatory="true" SelectedChipChanged="ChangeChip">
-        <MudChip Color="Color.Primary" Text="0" Default="true">Proximos</MudChip>
-        @foreach (var item in groupList)
-        {
-            <MudChip Color="Color.Primary" Text="@item.ID.ToString()">@item.GroupName</MudChip>
-        }
-    </MudChipSet>
-}
-
+<MudContainer class="pa-4">
+    @if(Loading)
+    {
+        <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+    }
+    else
+    {
+        <MudExpansionPanels >
+            <MudExpansionPanel >
+                <TitleContent>
+                    <MudText Color="Color.Primary">Filtros por grupos</MudText>
+                </TitleContent>
+                <ChildContent>
+                    <MudChipSet Filter="true" Mandatory="true" SelectedChipChanged="ChangeChip">
+                        <MudContainer Class="d-flex flex-column flex-grow-1 gap-4">
+                            <MudPaper>
+                                <MudChip Color="Color.Primary" Text="0" Default="true">Proximos a jugarse</MudChip>
+                            </MudPaper>
+                            <MudPaper>
+                                <MudText > Por jugarse</MudText>
+                                @foreach (var item in groupList.Where(x => x.Closed == false))
+                                {
+                                    <MudChip Color="Color.Primary" Text="@item.StageId.ToString()">@item.StageName</MudChip>
+                                }
+                            </MudPaper>
+                            <MudPaper>
+                                <MudText> Anteriores</MudText>
+                                @foreach (var item in groupList.Where(x => x.Closed == true))
+                                {
+                                    <MudChip Color="Color.Tertiary" Text="@item.ClosedStageId.ToString()">@item.StageName</MudChip>
+                                }
+                            </MudPaper>
+                        </MudContainer>
+                    </MudChipSet>
+                </ChildContent>
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+         <MudExpansionPanels class="pt-2">
+            <MudExpansionPanel >
+                <TitleContent>
+                    <MudText Color="Color.Primary">Filtros por equipos</MudText>
+                </TitleContent>
+                <ChildContent>
+                    <MudSelect 
+                        @bind-Value="@UserSelectedTeam" 
+                        Label="Equipo"
+                        T="int"
+                        >
+                        
+                        @foreach (UserTeam u in UserTeams)
+                        {
+                            <MudSelectItem value="@u.Id" T="int">@u.TeamName</MudSelectItem>
+                        }
+                    </MudSelect>
+                </ChildContent>
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+    }
+</MudContainer>
 @code
 {
     bool Loading = true;
-    ImmutableArray<FixtureGroups> groupList;
+    ImmutableArray<FixtureGroup> groupList;
+    int UserSelectedTeam = 0;
+    ImmutableArray<UserTeam> UserTeams;
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    ClaimsPrincipal? user;
+    int UserId = 0;
+    FiltersNotifier currentFilters = new();
     protected override async Task OnInitializedAsync()
     {
-        groupList = await fixtureService.GetAllGroups();
+        user = (await authenticationStateTask).User;
+        UserId = user.GetClaim<int>(ClaimType.Id);
+        UserTeams = await forecastService.GetUserTeamsAsync(UserId);
+        groupList = await forecastService.GetFixtureGroupsAsync();
         await InvokeAsync(() =>
         {
             StateHasChanged();
@@ -35,11 +91,24 @@ else
 
     private async Task ChangeChip(MudChip chip)
     {
-        FixtureGroups f = new()
+        currentFilters.StageId = int.Parse(chip.Text);
+        if (currentFilters.StageId < 0)
         {
-            ID = int.Parse(chip.Text)
-        };
-        GenericNotifier.data = f;
+            currentFilters.StageId *= -1;
+            currentFilters.Closed = true;
+        }
+        else
+        {
+            currentFilters.Closed = false;
+        }
+        GenericNotifier.data = currentFilters;
+        await GenericNotifier.ChangeData();
+    }
+
+    private async Task UserSelectedTeamValueChanged()
+    {
+        currentFilters.UserTeamId = UserSelectedTeam;
+        GenericNotifier.data = currentFilters;
         await GenericNotifier.ChangeData();
     }
 }

@@ -1,0 +1,3 @@
+Matches -> closed -> default 0
+Matches -> goal1 -> default 0
+Matches -> goals2 -> default 0

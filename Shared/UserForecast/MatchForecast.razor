@@ -1,5 +1,108 @@
-﻿<h3>MatchForecast</h3>
+﻿@using Prode2022Server.Models.UserForecast
+@using Prode2022Server.Services
+@using System.Collections.Immutable 
+@using System.Security.Claims
+@using Prode2022Server.Helpers;
+@inject ForecastService forecastService
+@inject IGenericListNotifier<FiltersNotifier> GenericNotifier
 
-@code {
+<MudContainer class="pa-4">
+    @if(Loading)
+    {
+        <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+    }
+    else
+    {
+       
+        <MudContainer class="pa-4">
+            <MudTable Items="@MatchList" Hover="true" Breakpoint="Breakpoint.Sm" 
+                Loading="@Loading" 
+                LoadingProgressColor="Color.Info"
+                T="Match"
+                Dense="true">
+                <HeaderContent>
+                    <MudTh>Grupo</MudTh>
+                    <MudTh>Equipo</MudTh>
+                    <MudTh>Fecha</MudTh>
+                    <MudTh>Equipo</MudTh>
+                    <MudTh>Equipo</MudTh>
+                    <MudTh>Guardar</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd >@context.StageName</MudTd>
+                    <MudTd >@context.MyTeamName</MudTd>
+                    <MudTd >@context.Date</MudTd>
+                    <MudTd >
+                        <MudPaper class="d-flex flex-row flex-grow-1 gap-4" Elevation="0">
+                            <MudText>@context.Team1Name</MudText>
+                            <MudImage Class="rounded-lg" Src="@($"Images/{@context.Team1Flag}.png")"/>
+                            <MudNumericField Disabled="@context.Closed" @bind-Value="@context.Team1Goals" Variant="Variant.Text" Min="0" Max="100" />
+                        </MudPaper>
+                    </MudTd>
+                    <MudTd >
+                        <MudPaper class="d-flex flex-row flex-grow-1 gap-4" Elevation="0">
+                            <MudNumericField Disabled="@context.Closed" @bind-Value="@context.Team2Goals" Variant="Variant.Text" Min="0" Max="100" />
+                            <MudText>@context.Team2Name</MudText>
+                            <MudImage Class="rounded-lg" Src="@($"Images/{@context.Team2Flag}.png")"/>
+                        </MudPaper>
+                    </MudTd>
+                    <MudTd >
+                        <MudIconButton 
+                            Icon="@Icons.Material.Filled.Delete" 
+                            aria-label="delete"
+                            OnClick="() => StoreResult(context)" />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudContainer>
 
+    }
+</MudContainer>
+
+@code 
+{
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    ClaimsPrincipal? user;
+    int UserId = 0;
+    ImmutableArray<Match> MatchList = new();
+    bool Loading = true;
+
+    int UserSelectedTeam = 0;
+    ImmutableArray<UserTeam> UserTeams;
+    protected override async Task OnInitializedAsync()
+    {
+        user = (await authenticationStateTask).User;
+        UserId = user.GetClaim<int>(ClaimType.Id);
+        GenericNotifier.NotifyList += ChangeList;
+        await ChangeList();
+        await InvokeAsync(() =>
+        {
+            StateHasChanged();
+        }); 
+        Loading = false;
+    }
+
+    public void Dispose()
+    {
+        GenericNotifier.NotifyDataControl -= ChangeList;
+    }
+
+    private async Task StoreResult(Match match)
+    {
+
+    }
+
+    private async Task ChangeList()
+    {
+        Loading = true;
+        //Fill Matches
+        var f =  GenericNotifier.data??new();
+        MatchList = await forecastService.GetNextMatchesAsync(f, UserId);
+        await InvokeAsync(() =>
+        {
+            StateHasChanged();
+        }); 
+        Loading = false;
+    }   
 }

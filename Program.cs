@@ -27,6 +27,7 @@ builder.Services.AddScoped<TournamentsServices>();
 
 //Add services as DI
 builder.Services.AddSingleton<FixtureService>();
+builder.Services.AddSingleton<ForecastService>();
 //authentication
 
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthProvider>();
