@@ -1,0 +1,128 @@
+﻿@using Prode2022Server.Models.UserForecast
+@using Prode2022Server.Services
+@using System.Collections.Immutable 
+@using System.Security.Claims
+@using Prode2022Server.Helpers
+@inject ForecastService forecastService
+@inject IGenericListNotifier<FiltersNotifier> GenericNotifier
+
+<MudContainer class="pa-4">
+    @if(Loading)
+    {
+        <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+    }
+    else
+    {
+        <MudExpansionPanels >
+            <MudExpansionPanel >
+                <TitleContent>
+                    <MudText Color="Color.Primary">Filtros por grupos</MudText>
+                </TitleContent>
+                <ChildContent>
+                    <MudChipSet Filter="true" Mandatory="true" SelectedChipChanged="ChangeChip">
+                        <MudContainer Class="d-flex flex-column flex-grow-1 gap-4">
+                            <MudPaper>
+                                <MudChip Color="Color.Primary" Text="0" Default="true">Proximos a jugarse</MudChip>
+                            </MudPaper>
+                            <MudPaper>
+                                <MudText > Por jugarse</MudText>
+                                @foreach (var item in groupList.Where(x => x.Closed == false))
+                                {
+                                    <MudChip Color="Color.Primary" Text="@item.StageId.ToString()">@item.StageName</MudChip>
+                                }
+                            </MudPaper>
+                            <MudPaper>
+                                <MudText> Anteriores</MudText>
+                                @foreach (var item in groupList.Where(x => x.Closed == true))
+                                {
+                                    <MudChip Color="Color.Tertiary" Text="@item.ClosedStageId.ToString()">@item.StageName</MudChip>
+                                }
+                            </MudPaper>
+                        </MudContainer>
+                    </MudChipSet>
+                </ChildContent>
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+         <MudExpansionPanels class="pt-2">
+            <MudExpansionPanel >
+                <TitleContent>
+                    <MudText Color="Color.Primary">Filtros por equipos</MudText>
+                </TitleContent>
+                <ChildContent>
+                    <MudSelect 
+                        @bind-Value="UserSelectedTeam"
+                        Label="Equipo"
+                        T="int"
+                        >
+                        <MudSelectItem value="@int.Parse("0")" T="int">Todos tus equipos</MudSelectItem>
+                        @foreach (UserTeam u in UserTeams)
+                        {
+                            <MudSelectItem value="@u.Id" T="int">@u.TeamName</MudSelectItem>
+                        }
+                    </MudSelect>
+                </ChildContent>
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+    }
+</MudContainer>
+@code
+{
+    bool Loading = true;
+    ImmutableArray<FixtureGroup> groupList;
+    private int userSelectedTeam;
+    private int UserSelectedTeam { 
+        get
+        {
+            return userSelectedTeam;
+        }
+        set 
+        {
+            if (value != userSelectedTeam)
+            {
+                userSelectedTeam = value;
+                UserSelectedTeamValueChanged();
+            }
+        }
+    }
+    ImmutableArray<UserTeam> UserTeams;
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    ClaimsPrincipal? user;
+    int UserId = 0;
+    FiltersNotifier currentFilters = new();
+    protected override async Task OnInitializedAsync()
+    {
+        user = (await authenticationStateTask).User;
+        UserId = user.GetClaim<int>(ClaimType.Id);
+        UserTeams = await forecastService.GetUserTeamsAsync(UserId);
+        groupList = await forecastService.GetFixtureGroupsAsync();
+        await InvokeAsync(() =>
+        {
+            StateHasChanged();
+        }); 
+        Loading = false;
+    }
+
+    private async Task ChangeChip(MudChip chip)
+    {
+        currentFilters.StageId = int.Parse(chip.Text);
+        if (currentFilters.StageId < 0)
+        {
+            currentFilters.StageId *= -1;
+            currentFilters.Closed = true;
+        }
+        else
+        {
+            currentFilters.Closed = false;
+        }
+        GenericNotifier.data = currentFilters;
+        await GenericNotifier.ChangeData();
+    }
+
+    private async Task UserSelectedTeamValueChanged()
+    {
+        currentFilters.UserTeamId = UserSelectedTeam;
+        GenericNotifier.data = currentFilters;
+        await GenericNotifier.ChangeData();
+    }
+}
