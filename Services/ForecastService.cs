@@ -94,5 +94,22 @@ where UserId = @userId",
             });
         return v.ToImmutableArray();
     }
+
+    public async Task<bool> StoreMatchAsync(Match match)
+    {
+        using var db = _dbService.SimpleDbConnection();
+        var result = await db.ExecuteAsync(@"
+update UserForecast set 
+    Team1Goals = @Team1Goals, 
+    Team2Goals = @Team2Goals
+where
+    Id = @Id", new
+        {
+            match.Team1Goals,
+            match.Team2Goals,
+            match.Id
+        });
+        return result > 0;
+    }
 }
 

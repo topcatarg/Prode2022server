@@ -50,11 +50,11 @@
                 </TitleContent>
                 <ChildContent>
                     <MudSelect 
-                        @bind-Value="@UserSelectedTeam" 
+                        @bind-Value="UserSelectedTeam"
                         Label="Equipo"
                         T="int"
                         >
-                        
+                        <MudSelectItem value="@int.Parse("0")" T="int">Todos tus equipos</MudSelectItem>
                         @foreach (UserTeam u in UserTeams)
                         {
                             <MudSelectItem value="@u.Id" T="int">@u.TeamName</MudSelectItem>
@@ -69,7 +69,21 @@
 {
     bool Loading = true;
     ImmutableArray<FixtureGroup> groupList;
-    int UserSelectedTeam = 0;
+    private int userSelectedTeam;
+    private int UserSelectedTeam { 
+        get
+        {
+            return userSelectedTeam;
+        }
+        set 
+        {
+            if (value != userSelectedTeam)
+            {
+                userSelectedTeam = value;
+                UserSelectedTeamValueChanged();
+            }
+        }
+    }
     ImmutableArray<UserTeam> UserTeams;
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }

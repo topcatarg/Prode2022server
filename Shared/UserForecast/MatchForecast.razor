@@ -5,6 +5,7 @@
 @using Prode2022Server.Helpers;
 @inject ForecastService forecastService
 @inject IGenericListNotifier<FiltersNotifier> GenericNotifier
+@inject ISnackbar Snackbar
 
 <MudContainer class="pa-4">
     @if(Loading)
@@ -13,7 +14,14 @@
     }
     else
     {
-       
+        <MudContainer class="pa-2">
+            <MudText Align="Align.Right">
+                <MudIconButton 
+                            Icon="@Icons.TwoTone.Save" 
+                            aria-label="Guardar"
+                            Color="Color.Primary"/>
+            </MudText>
+        </MudContainer>
         <MudContainer class="pa-4">
             <MudTable Items="@MatchList" Hover="true" Breakpoint="Breakpoint.Sm" 
                 Loading="@Loading" 
@@ -47,10 +55,14 @@
                         </MudPaper>
                     </MudTd>
                     <MudTd >
-                        <MudIconButton 
-                            Icon="@Icons.Material.Filled.Delete" 
-                            aria-label="delete"
-                            OnClick="() => StoreResult(context)" />
+                        @if (!context.Closed)
+                        {
+                            <MudIconButton 
+                                Icon="@Icons.TwoTone.Save" 
+                                aria-label="Guardar"
+                                OnClick="() => StoreResult(context)"
+                                Color="Color.Primary"/>
+                        }
                     </MudTd>
                 </RowTemplate>
             </MudTable>
@@ -76,11 +88,6 @@
         UserId = user.GetClaim<int>(ClaimType.Id);
         GenericNotifier.NotifyList += ChangeList;
         await ChangeList();
-        await InvokeAsync(() =>
-        {
-            StateHasChanged();
-        }); 
-        Loading = false;
     }
 
     public void Dispose()
@@ -90,7 +97,15 @@
 
     private async Task StoreResult(Match match)
     {
-
+        var result = await forecastService.StoreMatchAsync(match);
+        if (!result)
+        {
+            Snackbar.Add("No se actualizo",Severity.Error);
+        }
+        else
+        {
+            Snackbar.Add("Actualizado correctamente",Severity.Info);
+        }
     }
 
     private async Task ChangeList()
@@ -99,10 +114,10 @@
         //Fill Matches
         var f =  GenericNotifier.data??new();
         MatchList = await forecastService.GetNextMatchesAsync(f, UserId);
+        Loading = false;
         await InvokeAsync(() =>
         {
             StateHasChanged();
         }); 
-        Loading = false;
     }   
 }
