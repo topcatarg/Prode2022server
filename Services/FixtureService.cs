@@ -25,7 +25,7 @@ strftime(""%d/%m %H:%M"",date) as StandardDate,
 (select Code from Teams t where t.id = m.team1) as Team1Flag,
 (select Code from Teams t where t.id = m.team2) as Team2Flag
 from Matches m
-order by date");
+order by date(date)");
                 return v.ToImmutableArray();
         }
     
@@ -33,11 +33,13 @@ order by date");
         {
             using var db = _dbService.SimpleDbConnection();
             var v = await db.QueryAsync<FixtureGroups>(@"
-select 
-    Id as ID,
-    Name as GroupName
+select DISTINCT
+    F.Id as ID,
+    F.Name as GroupName,
+	MIN(M.Date) Over (PARTITION by m.stage) as mindate
 from
-    FixtureGroupsName");
+    FixtureGroupsName F inner join Matches M on F.Id = M.Stage
+order by date(mindate)");
                 return v.ToImmutableArray();
         }
 
