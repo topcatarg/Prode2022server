@@ -191,18 +191,20 @@ select @UserTeamId, Id from Matches",
         return "";
     }
 
-    public async Task<ImmutableArray<TournamentPositions>> GetTournamentPositionsAsync(int TeamId)
+    public async Task<ImmutableArray<TournamentPositions>> GetTournamentPositionsAsync(int TournamentId)
     {
         using SqliteConnection db = database.SimpleDbConnection();
         var v = await db.QueryAsync<TournamentPositions>(@"
-select U.TeamName TeamName, T.Score Score, U.UserId UserId
+select 
+    row_number() over (order by T.Score DESC) Position,
+    U.TeamName TeamName, T.Score Score, U.UserId UserId
 from TournamentsUserTeams T 
 	inner join UserTeams U on T.UserTeamId = U.Id
-WHERE T.TournamentId = @TeamId
-ORDER by T.Score",
+WHERE T.TournamentId = @TournamentId
+ORDER by T.Score Desc",
             new
             {
-                TeamId
+                TournamentId
             });
         return v.ToImmutableArray();
     }

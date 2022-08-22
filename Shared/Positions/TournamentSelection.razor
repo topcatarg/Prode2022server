@@ -5,7 +5,7 @@
 @using System.Security.Claims
 @using Prode2022Server.Helpers
 @inject TournamentsServices tournamentServices
-
+@inject IGenericListNotifier<TournamentIdentifier> GenericNotifier
 
 <MudContainer Class="pa-4">
     @if (userTournament.Count == 0)
@@ -33,7 +33,21 @@
     ClaimsPrincipal? user;
     int UserId = 0;
     List<UserTournament> userTournament = new();
-    int TournamentSelected { get; set; }
+    private int tournamentSelected;
+    int TournamentSelected {  
+        get
+        {
+            return tournamentSelected;
+        }  
+        set
+        {
+            if (tournamentSelected != value)
+            {
+                tournamentSelected = value;
+                OnComboChanged();
+            }
+        } 
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -48,5 +62,13 @@
         {
             StateHasChanged();
         }); 
+    }
+
+    private async Task OnComboChanged()
+    {
+        GenericNotifier.data = new() {
+            TournamentID = tournamentSelected
+        };
+        await GenericNotifier.ChangeData();
     }
 }

@@ -1,5 +1,79 @@
-﻿<h3>TournamentPositions</h3>
+﻿@using Prode2022Server.Services
+@using Prode2022Server.Models.Tournaments
+@using System.Collections.Immutable 
+@using System.Security.Claims
+@using Prode2022Server.Helpers
+@inject IGenericListNotifier<TournamentIdentifier> GenericNotifier
+@inject TournamentsServices tournamentServices
+
+<MudContainer class="pa-4">
+    @if(Loading)
+    {
+        <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+    }
+    else
+    {
+        <MudContainer class="pa-4">
+            <MudTable Items="@Positions" Hover="true"
+                Loading="@Loading" 
+                LoadingProgressColor="Color.Info"
+                T="Models.Tournaments.TournamentPositions"
+                Dense="true"
+                >
+                <HeaderContent>
+                    <MudTh>Posicion</MudTh>
+                    <MudTh>Equipo</MudTh>
+                    <MudTh>Puntaje</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    @if (UserId == context.UserId)
+                    {
+                        <MudTd Style="background-color:yellow;" >@context.Position</MudTd>
+                        <MudTd Style="background-color:yellow;">@context.TeamName</MudTd>
+                        <MudTd Style="background-color:yellow;">@context.Score</MudTd>
+                    }
+                    else
+                    {
+                        <MudTd >@context.Position</MudTd>
+                        <MudTd >@context.TeamName</MudTd>
+                        <MudTd >@context.Score</MudTd>
+                    }
+                </RowTemplate>
+            </MudTable>
+        </MudContainer>
+
+    }
+</MudContainer>
 
 @code {
 
+    private bool Loading;
+    ImmutableArray<Models.Tournaments.TournamentPositions> Positions = new();
+     [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    ClaimsPrincipal? user;
+    int UserId = 0;
+    protected override async Task OnInitializedAsync()
+    {
+        user = (await authenticationStateTask).User;
+        UserId = user.GetClaim<int>(ClaimType.Id);
+        GenericNotifier.NotifyList += ChangeList;
+        await ChangeList();
+    }
+
+    public void Dispose()
+    {
+        GenericNotifier.NotifyDataControl -= ChangeList;
+    }
+
+    private async Task ChangeList()
+    {
+        Loading = true;
+        await InvokeAsync(() => StateHasChanged());
+        //Fill Matches
+        TournamentIdentifier identifier = GenericNotifier.data??new();
+        Positions = await tournamentServices.GetTournamentPositionsAsync(identifier.TournamentID);
+        Loading = false;
+        await InvokeAsync(() => StateHasChanged()); 
+    }   
 }
