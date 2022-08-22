@@ -1,0 +1,52 @@
+﻿@using Prode2022Server.Models.Tournaments
+@using Prode2022Server.Models.UserData
+@using Prode2022Server.Services
+@using System.Collections.Immutable 
+@using System.Security.Claims
+@using Prode2022Server.Helpers
+@inject TournamentsServices tournamentServices
+
+
+<MudContainer Class="pa-4">
+    @if (userTournament.Count == 0)
+    {
+        <MudText>No estas inscripto en ningun torneo!</MudText>
+    }
+    else
+    {
+        <MudSelect 
+            @bind-Value="TournamentSelected"
+            Label="Selecciona el torneo que queres ver"
+            T="int"
+            >
+            @foreach (UserTournament u in userTournament)
+            {
+                <MudSelectItem value="@u.TournamentId" T="int">@u.TournamentName</MudSelectItem>
+            }
+        </MudSelect>
+    }
+</MudContainer>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    ClaimsPrincipal? user;
+    int UserId = 0;
+    List<UserTournament> userTournament = new();
+    int TournamentSelected { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = (await authenticationStateTask).User;
+        UserId = user.GetClaim<int>(ClaimType.Id);
+        userTournament = await tournamentServices.GetUserTournamentsAsync(UserId);
+        if (userTournament.Count> 0)
+        {
+            TournamentSelected = userTournament[0].TournamentId;
+        }
+        await InvokeAsync(() =>
+        {
+            StateHasChanged();
+        }); 
+    }
+}

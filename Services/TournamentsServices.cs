@@ -4,6 +4,9 @@ using Dapper;
 using Microsoft.Data.Sqlite;
 using Prode2022Server.Models;
 using Prode2022Server.Models.UserData;
+using Prode2022Server.Models.Tournaments;
+using System.Collections.Immutable;
+
 public class TournamentsServices
 {
 
@@ -100,7 +103,7 @@ where Id = @Id",
     {
         using SqliteConnection db = database.SimpleDbConnection();
         var v = await db.QueryAsync<UserTournament>(@"
-select T.Id, U.TeamName as TeamName, TU.Name as TournamentName
+select T.Id, U.TeamName as TeamName, TU.Name as TournamentName, T.TournamentId
 from TournamentsUserTeams T 
     inner join UserTeams U on U.Id = T.UserTeamId 
     inner join Tournaments TU on T.TournamentId = TU.Id
@@ -187,4 +190,21 @@ select @UserTeamId, Id from Matches",
         }
         return "";
     }
+
+    public async Task<ImmutableArray<TournamentPositions>> GetTournamentPositionsAsync(int TeamId)
+    {
+        using SqliteConnection db = database.SimpleDbConnection();
+        var v = await db.QueryAsync<TournamentPositions>(@"
+select U.TeamName TeamName, T.Score Score, U.UserId UserId
+from TournamentsUserTeams T 
+	inner join UserTeams U on T.UserTeamId = U.Id
+WHERE T.TournamentId = @TeamId
+ORDER by T.Score",
+            new
+            {
+                TeamId
+            });
+        return v.ToImmutableArray();
+    }
+
 }
