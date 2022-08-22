@@ -57,7 +57,7 @@ select
     (select Code from Teams t where t.id = m.team2) as Team2Flag
 from
     Matches m inner join FixtureGroupsName f on f.id = m.stage
-order by date");
+order by date(date)");
                 return v.ToImmutableArray();
         }
     }

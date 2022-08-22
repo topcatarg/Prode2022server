@@ -230,7 +230,7 @@ update matches set
     Stage = @stage
 where id = @id",
                 new {
-                    date = $"{fixtureMatch.Date}",
+                    date = $"2022-{fixtureMatch.Date!.Substring(3,2)}-{fixtureMatch.Date!.Substring(0,2)} {fixtureMatch.Time}",
                     team1 = fixtureMatch.Team1,
                     team2 = fixtureMatch.Team2,
                     stage = fixtureMatch.Stage,
