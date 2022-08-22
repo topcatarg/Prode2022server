@@ -31,7 +31,6 @@ builder.Services.AddSingleton<ForecastService>();
 //authentication
 
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthProvider>();
-builder.Services.AddScoped<UserServices>();
 builder.Services.AddBlazoredLocalStorage();
 //Authorization
 builder.Services.AddScoped<IAuthorizationHandler, ProfileHandler>();
