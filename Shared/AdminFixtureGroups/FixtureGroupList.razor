@@ -11,13 +11,14 @@
 }
 else
 {
-    <MudTable Items="@FixtureGroupsList" Hover="true" Breakpoint="Breakpoint.Sm" 
+    <MudTable Items="@FixtureGroupsList" Hover="true" 
     Loading="@Loading" 
     LoadingProgressColor="Color.Info"
     RowClassFunc="@SelectedRowClassFunc"
     OnRowClick="RowClickEvent"
     T="FixtureGroups"
-    @ref="FixtureGroupTable">
+    @ref="FixtureGroupTable"
+    Dense="true">
     <HeaderContent>
         <MudTh>ID</MudTh>
         <MudTh>Grupo</MudTh>

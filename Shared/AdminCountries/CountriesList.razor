@@ -5,13 +5,14 @@
 @inject CountriesListNotifier CountriesListNotifier
 @inject ISnackbar Snackbar
 
-<MudTable Items="@CountryList" Hover="true" Breakpoint="Breakpoint.Sm" 
+<MudTable Items="@CountryList" Hover="true"
     Loading="@Loading" 
     LoadingProgressColor="Color.Info"
     RowClassFunc="@SelectedRowClassFunc"
     OnRowClick="RowClickEvent"
     T="Country"
-    @ref="CountryTable">
+    @ref="CountryTable"
+    Dense="true">
     <HeaderContent>
         <MudTh>ID</MudTh>
         <MudTh>Pais</MudTh>
