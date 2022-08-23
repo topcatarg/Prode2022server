@@ -103,7 +103,7 @@ where Id = @Id",
     {
         using SqliteConnection db = database.SimpleDbConnection();
         var v = await db.QueryAsync<UserTournament>(@"
-select T.Id, U.TeamName as TeamName, TU.Name as TournamentName, T.TournamentId
+select T.Id, U.TeamName as TeamName, TU.Name as TournamentName, T.TournamentId, T.UserTeamId
 from TournamentsUserTeams T 
     inner join UserTeams U on U.Id = T.UserTeamId 
     inner join Tournaments TU on T.TournamentId = TU.Id

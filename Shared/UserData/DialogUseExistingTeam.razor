@@ -1,0 +1,23 @@
+@using System.Collections.Immutable
+
+<MudDialog>
+    <DialogContent>
+        <MudSelect T="double" Label="Price" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter">
+    <MudSelectItem T="double" Value="4.50"/>
+    <MudSelectItem T="double" Value="4.99"/>
+    <MudSelectItem T="double" Value="3.60"/>
+</MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Ok</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public int SelectedTeam {get;set;} = 0;
+    [Parameter] public ImmutableArray<string> TeamsList {get;set;} = new();
+    void Submit() => MudDialog.Close(DialogResult.Ok(SelectedTeam));
+    void Cancel() => MudDialog.Cancel();
+}

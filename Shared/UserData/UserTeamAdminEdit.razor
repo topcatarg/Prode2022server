@@ -5,6 +5,7 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject TournamentsServices tournamentsServices
+@inject UserTournamentsServices userTournamentServices
 
 <MudText Typo="Typo.h5" style="@($"color:{Colors.Indigo.Darken4};")" class="pa-2" >Torneos en los que participas </MudText>
 
@@ -34,6 +35,12 @@ else
                         aria-label="delete"
                         OnClick="() => DeleteRow(context)" />
                 </MudTooltip>
+                <MudTooltip Text="Cambiar nombre de equipo">
+                <MudIconButton 
+                    Icon="@Icons.Filled.Edit" 
+                    aria-label="Inscribirse"
+                    OnClick="() => ChangeTeamName(context)" />
+            </MudTooltip>
             </MudTd>
         </RowTemplate>
     </MudTable>
@@ -73,8 +80,14 @@ else
             <MudTooltip Text="Inscribirse con un nuevo equipo">
                 <MudIconButton 
                     Icon="@Icons.Filled.Edit" 
-                    aria-label="Inscribirse"
+                    aria-label="Inscribirse con equipo nuevo"
                     OnClick="() => BeginRegister(context)" />
+            </MudTooltip>
+            <MudTooltip Text="Inscribirse usando un equipo que ya creaste">
+                <MudIconButton 
+                    Icon="@Icons.Filled.AddComment" 
+                    aria-label="Inscribirse con equipo existente"
+                    OnClick="() => RegisterExistingTeam(context)" />
             </MudTooltip>
         </MudTd>
     </RowTemplate>
@@ -119,10 +132,12 @@ else
         }
     </DialogContent>
 </MudDialog>
+
+
 @code
 {
     [CascadingParameter]
-    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    private Task<AuthenticationState> authenticationStateTask { get; set; } 
     ClaimsPrincipal? user;
     int UserId = 0;
     private List<UserTournament>? userTournamentsList;
@@ -133,6 +148,7 @@ else
     private UserTournament userTournament = new();
     private bool ProcessingRequest = false;
     private int ProgressValue = 0;
+
     protected override async Task OnInitializedAsync()
     {
         Loading = true;
@@ -156,7 +172,33 @@ else
 
     public async Task DeleteRow(UserTournament u)
     {
-
+        DialogParameters parameters = new();
+        parameters.Add("Message","Confirma la salida de este torneo");
+        var options = new DialogOptions {CloseOnEscapeKey=true};
+        var dialog = DialogService.Show<DialogOKCancel>("Salida del torneo",parameters,options);
+        var resul = await dialog.Result;
+        if (resul.Cancelled)
+        {
+            Snackbar.Add("Cancelaste la operacion", Severity.Warning);
+            return;
+        }
+        string result = await userTournamentServices.DeleterUserForTournamentAsync(u.TournamentId,u.UserTeamId);
+        if (result.IsNullOrEmpty())
+        {
+            //everything is ok
+            Snackbar.Add("Saliste del torneo correctamente", Severity.Success);
+            Loading = true;
+            await InvokeAsync(StateHasChanged);
+            await LoadUserTournaments();
+            await LoadOtherTournaments();
+            Loading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+        else
+        {
+            //display error
+            Snackbar.Add(result, Severity.Error);
+        }
     }
 
     public void BeginRegister(UserTournament u)
@@ -228,4 +270,45 @@ else
         ProgressValue+=25;
         StateHasChanged();
     }
+
+    private async Task ChangeTeamName(UserTournament data)
+    {
+        DialogParameters parameters = new();
+        parameters.Add("TeamName",data.TeamName);
+        var options = new DialogOptions {CloseOnEscapeKey=true};
+        var dialog = DialogService.Show<DialogChangeTeamName>("Cambiar nombre de equipo",parameters,options);
+        var dialogResult = await dialog.Result;
+        if (dialogResult.Cancelled)
+        {
+            Snackbar.Add("No se cambio el nombre", Severity.Warning);
+            return;
+        }
+        else
+        {
+            string name = dialogResult.Data.ToString()??"";
+            if (name.IsNullOrEmpty())
+            {
+                Snackbar.Add("El nombre no puede estar vacio", Severity.Error);
+                return;
+            }
+            else
+            {
+                string resul = await userTournamentServices.ChangeTeamNameAsync(data.UserTeamId,name);
+                if (!resul.IsNullOrEmpty())
+                {
+                    Snackbar.Add(resul,Severity.Error);
+                    return;
+                }
+                await LoadUserTournaments();
+                await InvokeAsync(StateHasChanged);
+                Snackbar.Add("Cambiaste el nombre", Severity.Success);
+            }
+        }
+    }
+
+    private async Task RegisterExistingTeam(UserTournament data)
+    {
+        
+    }
+
 }
