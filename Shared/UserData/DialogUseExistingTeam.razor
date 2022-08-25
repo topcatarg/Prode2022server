@@ -1,23 +1,48 @@
 @using System.Collections.Immutable
+@using Prode2022Server.Models.UserData
+@using Prode2022Server.Helpers
 
 <MudDialog>
     <DialogContent>
-        <MudSelect T="double" Label="Price" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter">
-    <MudSelectItem T="double" Value="4.50"/>
-    <MudSelectItem T="double" Value="4.99"/>
-    <MudSelectItem T="double" Value="3.60"/>
-</MudSelect>
+        <MudSelect 
+            @bind-Value="SelectedTeam"
+            T="int" 
+            Label="Equipos" 
+            Variant="Variant.Outlined" 
+            AnchorOrigin="Origin.BottomCenter">
+            @foreach(var T in TeamList)
+            {
+                <MudSelectItem T="int" Value="T.UserTeamId">@T.TeamName</MudSelectItem>
+            }
+        </MudSelect>
+        @if (!TournamentPassword.IsNullOrEmpty())
+        {
+            <MudTextField @bind-Value="Password" Label="Password" Variant="Variant.Text" />
+            @if(TournamentPassword != Password)
+            {
+                <MudText>Password incorrecto</MudText>
+            }
+        }
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancelar</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit">Ok</MudButton>
+        <MudButton OnClick="Cancel" >Cancelar</MudButton>
+        <MudButton 
+            Color="Color.Primary" 
+            OnClick="Submit"
+            Disabled="TournamentPassword!=Password">Ok</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
     [Parameter] public int SelectedTeam {get;set;} = 0;
-    [Parameter] public ImmutableArray<string> TeamsList {get;set;} = new();
-    void Submit() => MudDialog.Close(DialogResult.Ok(SelectedTeam));
+    [Parameter] public ImmutableArray<UserTournament> TeamList {get;set;} = new();
+    [Parameter] public string TournamentPassword { get; set; } = "";
+    private string Password { get; set; } = "";
+
+    void Submit() 
+    {
+        MudDialog.Close(DialogResult.Ok(SelectedTeam));
+    } 
     void Cancel() => MudDialog.Cancel();
 }

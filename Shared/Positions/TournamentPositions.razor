@@ -49,8 +49,8 @@
 
     private bool Loading;
     ImmutableArray<Models.Tournaments.TournamentPositions> Positions = new();
-     [CascadingParameter]
-    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; } = default!;
     ClaimsPrincipal? user;
     int UserId = 0;
     protected override async Task OnInitializedAsync()

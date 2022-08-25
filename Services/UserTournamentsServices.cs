@@ -92,4 +92,32 @@ WHERE Id = @TeamId ",
         }
         return "";
     }
+
+    public async Task<ImmutableArray<UserTournament>> GetUserTeamsAsync(int UserId)
+    {
+        using SqliteConnection db = database.SimpleDbConnection();
+        var data = await db.QueryAsync<UserTournament>(@"
+select Id UserTeamId, TeamName
+from UserTeams
+where UserId = @UserId",
+            new
+            {
+                UserId
+            });
+        return data.ToImmutableArray();
+    }
+
+    public async Task<bool> AsignExistingTeamToTournamentAsync(int UserTeamId, int TournamentId)
+    {
+        using SqliteConnection db = database.SimpleDbConnection();
+        var result = await db.ExecuteAsync(@"
+INSERT INTO TournamentsUserTeams (TournamentId, UserTeamId)
+VALUES (@TournamentId,@UserTeamId)",
+            new
+            {
+                UserTeamId,
+                TournamentId
+            });
+        return result > 0;
+    }
 }

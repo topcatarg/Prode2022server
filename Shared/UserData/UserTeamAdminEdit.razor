@@ -137,7 +137,7 @@ else
 @code
 {
     [CascadingParameter]
-    private Task<AuthenticationState> authenticationStateTask { get; set; } 
+    private Task<AuthenticationState> authenticationStateTask { get; set; } = default!;
     ClaimsPrincipal? user;
     int UserId = 0;
     private List<UserTournament>? userTournamentsList;
@@ -308,7 +308,35 @@ else
 
     private async Task RegisterExistingTeam(UserTournament data)
     {
-        
+        //Get team List
+        var userTeams = await userTournamentServices.GetUserTeamsAsync(UserId);
+        DialogParameters parameters = new();
+        parameters.Add("TeamList", userTeams);
+        parameters.Add("SelectedTeam", userTeams[0].UserTeamId);
+        parameters.Add("TournamentPassword", data.Password);
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = DialogService.Show<DialogUseExistingTeam>("Seleccionar equipo", parameters, options);
+        var dialogResult = await dialog.Result;
+        if (dialogResult.Cancelled)
+        {
+            Snackbar.Add("No se asigno un equipo", Severity.Warning);
+            return;
+        }
+        else
+        {
+            int TeamId = (int) dialogResult.Data;
+            if (await userTournamentServices.AsignExistingTeamToTournamentAsync(TeamId, data.TournamentId))
+            {
+                Snackbar.Add("Asignado correctamente", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Fallo al agregar el equipo", Severity.Error);
+            }
+        }
+        await LoadUserTournaments();
+        await LoadOtherTournaments();
+        await InvokeAsync(StateHasChanged);
     }
 
 }
