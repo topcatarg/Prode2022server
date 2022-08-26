@@ -309,11 +309,17 @@ else
     private async Task RegisterExistingTeam(UserTournament data)
     {
         //Get team List
-        var userTeams = await userTournamentServices.GetUserTeamsAsync(UserId);
+        UserExistingTeamSelection ParametersData = new();
+        ParametersData.TeamList =  await userTournamentServices.GetUserTeamsAsync(UserId);
+        if (ParametersData.TeamList.Count() == 0)
+        {
+            Snackbar.Add("No hay ningun equipo creado", Severity.Warning);
+            return;
+        }
+        ParametersData.SelectedTeam = ParametersData.TeamList[0].UserTeamId;
+        ParametersData.TournamentPassword = data.Password??"";
         DialogParameters parameters = new();
-        parameters.Add("TeamList", userTeams);
-        parameters.Add("SelectedTeam", userTeams[0].UserTeamId);
-        parameters.Add("TournamentPassword", data.Password);
+        parameters.Add("data", ParametersData);
         var options = new DialogOptions { CloseOnEscapeKey = true };
         var dialog = DialogService.Show<DialogUseExistingTeam>("Seleccionar equipo", parameters, options);
         var dialogResult = await dialog.Result;
@@ -336,7 +342,7 @@ else
         }
         await LoadUserTournaments();
         await LoadOtherTournaments();
-        await InvokeAsync(StateHasChanged);
+        //await InvokeAsync(StateHasChanged);
     }
 
 }

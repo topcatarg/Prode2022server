@@ -2,47 +2,49 @@
 @using Prode2022Server.Models.UserData
 @using Prode2022Server.Helpers
 
-<MudDialog>
-    <DialogContent>
-        <MudSelect 
-            @bind-Value="SelectedTeam"
-            T="int" 
-            Label="Equipos" 
-            Variant="Variant.Outlined" 
-            AnchorOrigin="Origin.BottomCenter">
-            @foreach(var T in TeamList)
-            {
-                <MudSelectItem T="int" Value="T.UserTeamId">@T.TeamName</MudSelectItem>
-            }
-        </MudSelect>
-        @if (!TournamentPassword.IsNullOrEmpty())
-        {
-            <MudTextField @bind-Value="Password" Label="Password" Variant="Variant.Text" />
-            @if(TournamentPassword != Password)
-            {
-                <MudText>Password incorrecto</MudText>
-            }
-        }
-    </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel" >Cancelar</MudButton>
-        <MudButton 
-            Color="Color.Primary" 
-            OnClick="Submit"
-            Disabled="TournamentPassword!=Password">Ok</MudButton>
-    </DialogActions>
-</MudDialog>
+<EditForm Model="@data" OnValidSubmit="Submit">
+<DataAnnotationsValidator />
+    <MudDialog>
+        <DialogContent>
+                    <MudSelect 
+                        @bind-Value="data.SelectedTeam"
+                        T="int" 
+                        Label="Equipos" 
+                        Variant="Variant.Outlined" 
+                        AnchorOrigin="Origin.BottomCenter">
+                        @foreach(var T in data.TeamList)
+                        {
+                            <MudSelectItem T="int" Value="T.UserTeamId">@T.TeamName</MudSelectItem>
+                        }
+                    </MudSelect>
+                    @if (!data.TournamentPassword.IsNullOrEmpty())
+                    {
+                        <MudTextField 
+                            @bind-Value="data.Password" 
+                            Label="Password" 
+                            Variant="Variant.Text"
+                            For="@(() => data.Password)" />
+                    }
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="Cancel" >Cancelar</MudButton>
+            <MudButton 
+                ButtonType="ButtonType.Submit"
+                Color="Color.Primary" 
+                Disabled="false">Ok</MudButton>
+        </DialogActions>
+    </MudDialog>
+</EditForm>
 
-@code {
+@code 
+{
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
-    [Parameter] public int SelectedTeam {get;set;} = 0;
-    [Parameter] public ImmutableArray<UserTournament> TeamList {get;set;} = new();
-    [Parameter] public string TournamentPassword { get; set; } = "";
-    private string Password { get; set; } = "";
+    [Parameter] public UserExistingTeamSelection data { get; set; } = default!;
 
     void Submit() 
     {
-        MudDialog.Close(DialogResult.Ok(SelectedTeam));
+        MudDialog.Close(DialogResult.Ok(data.SelectedTeam));
     } 
     void Cancel() => MudDialog.Cancel();
+
 }
