@@ -8,10 +8,10 @@
 		<PackageReference Include="Dapper" Version="2.0.123" />
 		<PackageReference Include="MudBlazor" Version="6.0.14" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
-		<PackageReference Include="Microsoft.Data.Sqlite" Version="6.0.7" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="6.0.7" />
+		<PackageReference Include="Microsoft.Data.Sqlite" Version="6.0.8" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="6.0.8" />
 		<PackageReference Include="Blazored.LocalStorage" Version="4.2.0" />
 		<PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
-		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.22.0" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.22.1" />
 	</ItemGroup>
 </Project>

@@ -1,0 +1,22 @@
+﻿@page "/AdminSite"
+
+@attribute [Authorize(Policy = "ProfileIsAdmin")]
+
+<MudContainer>
+    <MudPaper>
+        Hora del servidor: @CurrentTime
+    </MudPaper>
+    <MudPaper>
+        <MudButton>Cerrar torneos</MudButton>
+        <MudButton>Calcular partidos</MudButton>
+        <MudButton>Limpiar tokens vencidos</MudButton>
+
+    </MudPaper>
+</MudContainer>
+<h3>AdminPage</h3>
+
+@code 
+{
+    private DateTime CurrentTime = DateTime.Now;
+
+}
