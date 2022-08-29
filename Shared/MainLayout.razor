@@ -46,7 +46,7 @@
     bool _drawerOpen = true;
 
     [CascadingParameter]
-    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    private Task<AuthenticationState> authenticationStateTask { get; set; } = default!;
     ClaimsPrincipal user;
 
     string UserName = "";

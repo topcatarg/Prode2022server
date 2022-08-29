@@ -55,7 +55,7 @@
     bool ButtonDisabled = false;
 
     [CascadingParameter]
-    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    private Task<AuthenticationState> authenticationStateTask { get; set; } = default!;
 
     void ButtonTestclick()
     {
