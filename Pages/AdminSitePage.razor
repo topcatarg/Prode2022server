@@ -1,0 +1,44 @@
+﻿@page "/AdminSite"
+@using Prode2022Server.Services
+@inject AdminSiteServices adminSiteServices
+
+@attribute [Authorize(Policy = "ProfileIsAdmin")]
+
+<MudContainer>
+    @if (Working)
+    {
+        <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+    }
+    else
+    {
+        <MudPaper>
+            Hora del servidor: @CurrentTime
+        </MudPaper>
+        <MudPaper>
+            <MudButton>Cerrar torneos</MudButton>
+            <MudButton>Calcular partidos</MudButton>
+            <MudButton OnClick="CleanRefreshTokens">Limpiar tokens vencidos</MudButton>
+            <MudButton>Blaquear password</MudButton>
+            <MudButton>Diferencia horaria</MudButton>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code 
+{
+    private bool Working = false;
+    private DateTime CurrentTime = DateTime.Now;
+
+    private async Task CleanRefreshTokens()
+    {
+        await WorkingState(true);
+        await adminSiteServices.CleanRefreshTokensAsyncs();
+        await WorkingState(false);
+    }
+
+    private async Task WorkingState(bool State)
+    {
+        Working = State;
+        await InvokeAsync(StateHasChanged);
+    }
+}
