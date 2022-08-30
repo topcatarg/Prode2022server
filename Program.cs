@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using Prode2022Server.Data;
 using Prode2022Server.Services;
 using Prode2022Server.Security;
 using MudBlazor.Services;
@@ -18,13 +17,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddHttpClient();
-builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddSingleton<DbService>();
 builder.Services.AddSingleton<DataAdminServices>();
 builder.Services.AddSingleton<SecurityServices>();
 builder.Services.AddSingleton<SettingHelpers>();
 builder.Services.AddScoped<TournamentsServices>();
 builder.Services.AddScoped<UserTournamentsServices>();
+builder.Services.AddScoped<AdminSiteServices>();
 
 //Add services as DI
 builder.Services.AddSingleton<FixtureService>();
