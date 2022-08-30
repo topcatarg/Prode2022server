@@ -1,10 +1,13 @@
 @using Models
 @using MudBlazor
 @using System.ComponentModel.DataAnnotations
+@using Prode2022Server.Services
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
 @inject IGenericListNotifier<FixtureMatch> GenericNotifier
 @inject ISnackbar Snackbar
+@inject DataAdminServices dataAdminServices
+
 
 <EditForm Model="@ActiveMatch" OnValidSubmit="DataValidated">
     <DataAnnotationsValidator />
@@ -131,7 +134,7 @@
         }
         Times = Enumerable.Range(00, 24).Select(i => (i*100).ToString("00:00")).ToList<string>();
         //Get the country list
-        CountryList = await HttpClient.GetFromJsonAsync<List<Country>>(NavigationManager.BaseUri + "DataAdmin/AllCountries")??new();
+        CountryList = await dataAdminServices.GetAllTournamentTeamsAsync();
         GroupList = await HttpClient.GetFromJsonAsync<List<FixtureGroups>>(NavigationManager.BaseUri + "DataAdmin/GetAllFixtureGroups")??new();
         GenericNotifier.NotifyDataControl += OnNotify;
     }

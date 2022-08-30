@@ -19,13 +19,6 @@ namespace Prode2022Server.Controllers
             dataadminservice = das;
         }
 
-        [Route("AllCountries")]
-        [HttpGet]
-        public async Task<ActionResult<List<Country>>> GetAllCountries()
-        {
-            return await dataadminservice.GetAllCountries();
-        }
-
         [Route("UpSert")]
         [HttpPost]
         public async Task<ActionResult> UpSert(Country country)

@@ -1,10 +1,12 @@
 @using Models
 @using MudBlazor
 @using System.ComponentModel.DataAnnotations
+@using Prode2022Server.Services
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
 @inject CountriesListNotifier CountriesListNotifier
 @inject ISnackbar Snackbar
+@inject DataAdminServices dataAdminServices
 
 <EditForm Model="@ActiveCountry" OnValidSubmit="DataValidated">
     <DataAnnotationsValidator />
@@ -49,6 +51,7 @@
     public async Task Add()
     {
         ButtonDisabled = true;
+        var result = await dataAdminServices.UpSertTournamentTeamAsync(ActiveCountry);
         var response = await HttpClient.PostAsJsonAsync<Country>(NavigationManager.BaseUri + "DataAdmin/UpSert",ActiveCountry);
         if (!response.IsSuccessStatusCode)
         {

@@ -15,37 +15,39 @@ namespace Prode2022Server.Services
             database = dbService;
         }
 
-        public async Task<List<Country>> GetAllCountries()
+        /// <summary>
+        /// Return a list of Teams for the tournament
+        /// </summary>
+        /// <returns>A list of teams that are in the championship tournament</returns>
+        public async Task<List<Country>> GetAllTournamentTeamsAsync()
         {
             using SqliteConnection db = database.SimpleDbConnection();
-            var data = await db.QueryAsync<Country>(
+            return (await db.QueryAsync<Country>(
                 @"Select * from teams order by ID"
-            );
-            db.Close();
-            return data.ToList();
+            )).ToList();
         }
 
-        public async Task<bool> UpSert(Country country)
+        public async Task<bool> UpSertTournamentTeamAsync(Country country)
         {
             using SqliteConnection db = database.SimpleDbConnection();
             int result; 
             if (country.ID == 0)
             {
                 result = await db.ExecuteAsync(
-                @"insert into Teams (Team,code) values (@team, @code)",
+                @"insert into Teams (Team,code) values (@Team, @Code)",
                 new {
-                    team = country.Team,
-                    code = country.Code
+                    country.Team,
+                    country.Code
                 });
             }
             else
             {
                 result = await db.ExecuteAsync(
-                @"update teams set team = @team, code = @code where id = @id",
+                @"update teams set team = @Team, code = @Code where id = @ID",
                 new {
-                    id = country.ID,
-                    team = country.Team,
-                    code = country.Code
+                    country.ID,
+                    country.Team,
+                    country.Code
                 });
             }
             return result > 0;
