@@ -1,9 +1,9 @@
 @using Models
 @using MudBlazor
-@inject HttpClient HttpClient
-@inject NavigationManager NavigationManager
+@using Prode2022Server.Services
 @inject IGenericListNotifier<FixtureGroups> ListNotifier
 @inject ISnackbar Snackbar
+@inject DataAdminServices dataAdminServices
 
 @if (FixtureGroupsList == null || FixtureGroupsList.Count == 0)
 {
@@ -30,7 +30,8 @@ else
             <MudIconButton 
                 Icon="@Icons.Material.Filled.Delete" 
                 aria-label="delete"
-                OnClick="() => DeleteRow(context)" />
+                OnClick="() => DeleteRow(context)"
+                Disabled="DeleteDisabled" />
         </MudTd>
     </RowTemplate>
 </MudTable>
@@ -40,7 +41,7 @@ else
 <style>
     .selected {
     background-color: #1E88E5 !important;
-}
+    }
 
     .selected > td {
         color: white !important;
@@ -57,6 +58,7 @@ else
         bool Loading = true;
         private MudTable<FixtureGroups>? FixtureGroupTable;
         int selectedId = -1;
+        private bool DeleteDisabled=false;
         protected override async Task OnInitializedAsync()
         {
             await LoadFixtureGroups();
@@ -72,7 +74,8 @@ else
         public async Task LoadFixtureGroups()
         {
             Loading = true;
-            FixtureGroupsList = await HttpClient.GetFromJsonAsync<List<FixtureGroups>>(NavigationManager.BaseUri + "DataAdmin/GetAllFixtureGroups")??new();
+            await InvokeAsync(StateHasChanged);
+            FixtureGroupsList = await dataAdminServices.GetAllFixtureGroupsAsync();
             Loading = false;
             await InvokeAsync(StateHasChanged);
         }
@@ -116,8 +119,10 @@ else
 
         private async void DeleteRow(FixtureGroups c)
         {
-            var response = await HttpClient.PostAsJsonAsync<FixtureGroups>(NavigationManager.BaseUri + "DataAdmin/DeleteFixtureGroups",c);
-            if (!response.IsSuccessStatusCode)
+            DeleteDisabled=true;
+            await InvokeAsync(StateHasChanged);
+            var result = await dataAdminServices.DeleteFixtureGroupAsync(c);
+            if (!result)
             {
                 Snackbar.Add("No se elimino la fila",Severity.Error);
             }
@@ -125,6 +130,8 @@ else
             {
                 Snackbar.Add("Fila eliminada correctamente",Severity.Info);
             }
+            DeleteDisabled=true;
+            await InvokeAsync(StateHasChanged);
             await LoadFixtureGroups();
         }
         

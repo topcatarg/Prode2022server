@@ -41,13 +41,7 @@ builder.Services.AddAuthorization(config =>
                 policy.Requirements.Add(new ProfileIsAdmin()));
         });
 //Notifiers
-builder.Services.AddScoped<CountriesListNotifier>();
-//builder.Services.AddScoped<IGenericListNotifier<>,GenericListNotifier<>>();
 builder.Services.AddScoped(typeof(IGenericListNotifier<>), typeof(GenericListNotifier<>));
-
-//swagger
-builder.Services.AddMvcCore().AddApiExplorer();
-builder.Services.AddSwaggerGen();
 
 //theme
 builder.Services.AddMudServices(config => {
@@ -73,12 +67,7 @@ if (!app.Environment.IsDevelopment())
 }
 else
 {
-    //swagger
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Blazor API V1");
-    });
+   
 }
 
 app.UseHttpsRedirection();

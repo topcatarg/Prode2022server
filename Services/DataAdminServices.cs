@@ -15,43 +15,45 @@ namespace Prode2022Server.Services
             database = dbService;
         }
 
-        public async Task<List<Country>> GetAllCountries()
+        /// <summary>
+        /// Return a list of Teams for the tournament
+        /// </summary>
+        /// <returns>A list of teams that are in the championship tournament</returns>
+        public async Task<List<Country>> GetAllTournamentTeamsAsync()
         {
             using SqliteConnection db = database.SimpleDbConnection();
-            var data = await db.QueryAsync<Country>(
+            return (await db.QueryAsync<Country>(
                 @"Select * from teams order by ID"
-            );
-            db.Close();
-            return data.ToList();
+            )).ToList();
         }
 
-        public async Task<bool> UpSert(Country country)
+        public async Task<bool> UpSertTournamentTeamAsync(Country country)
         {
             using SqliteConnection db = database.SimpleDbConnection();
             int result; 
             if (country.ID == 0)
             {
                 result = await db.ExecuteAsync(
-                @"insert into Teams (Team,code) values (@team, @code)",
+                @"insert into Teams (Team,code) values (@Team, @Code)",
                 new {
-                    team = country.Team,
-                    code = country.Code
+                    country.Team,
+                    country.Code
                 });
             }
             else
             {
                 result = await db.ExecuteAsync(
-                @"update teams set team = @team, code = @code where id = @id",
+                @"update teams set team = @Team, code = @Code where id = @ID",
                 new {
-                    id = country.ID,
-                    team = country.Team,
-                    code = country.Code
+                    country.ID,
+                    country.Team,
+                    country.Code
                 });
             }
             return result > 0;
         }
     
-        public async Task<bool> Delete(Country country)
+        public async Task<bool> DeleteCountryAsync(Country country)
         {
             using SqliteConnection db = database.SimpleDbConnection();
             //check if can delete on other tables
@@ -76,7 +78,7 @@ namespace Prode2022Server.Services
         }
     
     
-        public async Task<List<FixtureGroups>> GetAllFixtureGroups()
+        public async Task<List<FixtureGroups>> GetAllFixtureGroupsAsync()
         {
             using SqliteConnection db = database.SimpleDbConnection();
             var data = await db.QueryAsync<FixtureGroups>(
@@ -91,7 +93,7 @@ namespace Prode2022Server.Services
         /// </summary>
         /// <param name="fixtureGroups">The fixture group class to delete</param>
         /// <returns>True is deleted ocurred</returns>
-        public async Task<bool> Delete(FixtureGroups fixtureGroups)
+        public async Task<bool> DeleteFixtureGroupAsync(FixtureGroups fixtureGroups)
         {
             using SqliteConnection db = database.SimpleDbConnection();
             //check if can delete on other tables
@@ -115,7 +117,7 @@ namespace Prode2022Server.Services
             return result>0;
         }
     
-        public async Task<bool> UpSert(FixtureGroups fixtureGroups)
+        public async Task<bool> UpSertFixtureGroupsAsync(FixtureGroups fixtureGroups)
         {
             using SqliteConnection db = database.SimpleDbConnection();
             int result; 
@@ -139,7 +141,7 @@ namespace Prode2022Server.Services
             return result > 0;
         }
     
-        public async Task<List<FixtureMatch>> GetAllMatchs()
+        public async Task<List<FixtureMatch>> GetAllMatchsAsync()
         {
             using SqliteConnection db = database.SimpleDbConnection();
             var data = await db.QueryAsync<FixtureMatch>(@"
@@ -179,7 +181,7 @@ from Matches"
             return data.ToList();
         }
     
-        public async Task<bool> Delete(FixtureMatch fixtureMatch)
+        public async Task<bool> DeleteFixtureMatchAsync(FixtureMatch fixtureMatch)
         {
              using SqliteConnection db = database.SimpleDbConnection();
             //check if can delete on other tables
@@ -203,7 +205,7 @@ from Matches"
             return result>0;
         }
     
-        public async Task<bool> UpSert(FixtureMatch fixtureMatch)
+        public async Task<bool> UpSertFixtureMatchAsync(FixtureMatch fixtureMatch)
         {
             using SqliteConnection db = database.SimpleDbConnection();
             int result; 
@@ -259,7 +261,7 @@ order by date"
             return data.ToList();
         }
     
-        public async Task<bool> StoreMatchResult(MatchResult matchResult)
+        public async Task<bool> StoreMatchResultAsync(MatchResult matchResult)
         {
             using SqliteConnection db = database.SimpleDbConnection();
             var result = await db.ExecuteAsync(@"

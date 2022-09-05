@@ -32,7 +32,7 @@
     private async Task CleanRefreshTokens()
     {
         await WorkingState(true);
-        await adminSiteServices.CleanRefreshTokensAsyncs();
+        await adminSiteServices.CleanRefreshTokensAsync();
         await WorkingState(false);
     }
 

@@ -24,13 +24,13 @@ namespace Prode2022Server.Services
             this.settings = settings;
         }
 
-        public async Task<bool> CreateUser(NewUserData user)
+        /// <summary>
+        /// Create a new user
+        /// </summary>
+        /// <param name="user">User data</param>
+        /// <returns></returns>
+        public async Task<bool> CreateUserAsync(NewUserData user)
         {
-            //lets encrypt the password first
-            //get a new salt
-            //var salt = RandomNumberGenerator.GetBytes(32).ToString();
-            //var salt2 = BCrypt.Net.BCrypt.GenerateSalt();
-            //string PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.Password, salt2);
             string PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.Password);
             using SqliteConnection db = database.SimpleDbConnection();
             int result = await db.ExecuteAsync(@"
@@ -48,7 +48,12 @@ values (@name, @email, @password, @salt, @validated)",
             return result > 0;
         }
 
-        public async Task<UserLogin> CheckUser(UserLogin user)
+        /// <summary>
+        /// Check if the user is correct
+        /// </summary>
+        /// <param name="user">User data</param>
+        /// <returns></returns>
+        public async Task<UserLogin> CheckUserAsync(UserLogin user)
         {
             using SqliteConnection db = database.SimpleDbConnection();
             UserLogin NewUser = await db.QueryFirstOrDefaultAsync<UserLogin>(@"
@@ -107,7 +112,7 @@ values (@UserId, @Token, @Expiry)
             return refreshToken;
         }
 
-        public async Task<UserLogin> GetUserByAccessTokenAsync(string accessToken)
+        public UserLogin GetUserByAccessToken(string accessToken)
         {
             try
             {

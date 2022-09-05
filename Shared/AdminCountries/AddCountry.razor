@@ -1,10 +1,11 @@
 @using Models
 @using MudBlazor
 @using System.ComponentModel.DataAnnotations
-@inject HttpClient HttpClient
-@inject NavigationManager NavigationManager
-@inject CountriesListNotifier CountriesListNotifier
+@using Prode2022Server.Services
+@using Prode2022Server.Helpers
+@inject IGenericListNotifier<Country> genericListNotifier
 @inject ISnackbar Snackbar
+@inject DataAdminServices dataAdminServices
 
 <EditForm Model="@ActiveCountry" OnValidSubmit="DataValidated">
     <DataAnnotationsValidator />
@@ -49,8 +50,9 @@
     public async Task Add()
     {
         ButtonDisabled = true;
-        var response = await HttpClient.PostAsJsonAsync<Country>(NavigationManager.BaseUri + "DataAdmin/UpSert",ActiveCountry);
-        if (!response.IsSuccessStatusCode)
+        await InvokeAsync(StateHasChanged);
+        var result = await dataAdminServices.UpSertTournamentTeamAsync(ActiveCountry);
+        if (!result)
         {
             Snackbar.Add("No se agrego el registro",Severity.Error);
         }
@@ -58,10 +60,9 @@
         {
             Snackbar.Add("Registro agregado",Severity.Info);
         }
-        //await Task.Delay(2000);
         ActiveCountry = new();
         ButtonText = "Agregar";
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
         await onclick.InvokeAsync();
         ButtonDisabled = false;
     }
@@ -73,9 +74,9 @@
 
     public async Task OnNotify()
     {
-        if (CountriesListNotifier.country != null)
+        if (genericListNotifier.data != null)
         {
-            ActiveCountry = CountriesListNotifier.country;
+            ActiveCountry = genericListNotifier.data;
             ButtonText = "Actualizar";
         }
         else
@@ -90,12 +91,12 @@
     }
     protected override void OnInitialized()
     {
-        CountriesListNotifier.Notify += OnNotify;
+        genericListNotifier.NotifyDataControl += OnNotify;
     }
 
 
     public void Dispose()
     {
-        CountriesListNotifier.Notify -= OnNotify;
+        genericListNotifier.NotifyDataControl -= OnNotify;
     }
 }

@@ -1,9 +1,10 @@
 @using Models
 @using MudBlazor
-@inject HttpClient HttpClient
-@inject NavigationManager NavigationManager
-@inject CountriesListNotifier CountriesListNotifier
+@using Prode2022Server.Services
+@using Prode2022Server.Helpers
+@inject IGenericListNotifier<Country> genericListNotifier
 @inject ISnackbar Snackbar
+@inject DataAdminServices dataAdminService
 
 <MudTable Items="@CountryList" Hover="true"
     Loading="@Loading" 
@@ -30,7 +31,8 @@
             <MudIconButton 
                 Icon="@Icons.Material.Filled.Delete" 
                 aria-label="delete"
-                OnClick="() => DeleteRow(context)" />
+                OnClick="() => DeleteRow(context)" 
+                Disabled="DeleteDisabled"/>
         </MudTd>
     </RowTemplate>
 </MudTable>
@@ -38,7 +40,7 @@
 <style>
     .selected {
     background-color: #1E88E5 !important;
-}
+    }
 
     .selected > td {
         color: white !important;
@@ -55,12 +57,12 @@
         bool Loading = true;
         private MudTable<Country>? CountryTable;
         int selectedId = -1;
+        private bool DeleteDisabled= false;
         public async Task LoadCountries()
         {
             Loading = true;
-            //var result = await HttpClient.GetFromJsonAsync<List<Country>>(NavigationManager.BaseUri + "DataAdmin/AllCountries");
-            //CountryArray = result!=null?result:new();
-            CountryList = await HttpClient.GetFromJsonAsync<List<Country>>(NavigationManager.BaseUri + "DataAdmin/AllCountries")??new();
+            await InvokeAsync(StateHasChanged);
+            CountryList = await dataAdminService.GetAllTournamentTeamsAsync();
             Loading = false;
             await InvokeAsync(StateHasChanged);
         }
@@ -75,11 +77,11 @@
                 if(selectedId == selectedRow.ID)
                 {
                     //clicked on the same, deselect
-                    await CountriesListNotifier.ChangeRow(null);
+                    await genericListNotifier.ChangeRow(null);
                 }
                 else
                 {
-                    await CountriesListNotifier.ChangeRow(tableRowClickEventArgs.Item);
+                    await genericListNotifier.ChangeRow(tableRowClickEventArgs.Item);
                 }
             }
         }
@@ -104,16 +106,21 @@
 
         private async void DeleteRow(Country c)
         {
-            var response = await HttpClient.PostAsJsonAsync<Country>(NavigationManager.BaseUri + "DataAdmin/Delete",c);
-            if (!response.IsSuccessStatusCode)
+            DeleteDisabled=true;
+            await InvokeAsync(StateHasChanged);
+            var result = await dataAdminService.DeleteCountryAsync(c);
+            if (!result)
             {
                 Snackbar.Add("No se elimino la fila",Severity.Error);
             }
             else
             {
                 Snackbar.Add("Fila eliminada correctamente",Severity.Info);
+                await genericListNotifier.ChangeRow(null);
             }
+            DeleteDisabled= false;
             await LoadCountries();
+            
         }
         
 }
