@@ -1,8 +1,8 @@
 @using Models
 @using MudBlazor
+@using Prode2022Server.Services
 @using System.ComponentModel.DataAnnotations
-@inject HttpClient HttpClient
-@inject NavigationManager NavigationManager
+@inject DataAdminServices dataAdminServices
 @inject IGenericListNotifier<FixtureGroups> GenericNotifier
 @inject ISnackbar Snackbar
 
@@ -84,19 +84,15 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        MatchResultsList = await HttpClient.GetFromJsonAsync<List<MatchResult>>(NavigationManager.BaseUri + "DataAdmin/GetMatchResults")??new();
-        await InvokeAsync(() =>
-        {
-            StateHasChanged();
-        }); 
+        MatchResultsList = await dataAdminServices.GetMatchResultsAsync();
         Loading = false;
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task StoreResult(MatchResult matchResult)
     {
-        var response = await HttpClient.PostAsJsonAsync<MatchResult>(
-            NavigationManager.BaseUri + "DataAdmin/StoreMatchResult",matchResult);
-        if (!response.IsSuccessStatusCode)
+        var result = await dataAdminServices.StoreMatchResultAsync(matchResult);
+        if (!result)
         {
             Snackbar.Add("No se actualizo",Severity.Error);
         }

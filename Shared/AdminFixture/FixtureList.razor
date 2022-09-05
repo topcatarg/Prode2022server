@@ -1,9 +1,9 @@
 @using Models
 @using MudBlazor
-@inject HttpClient HttpClient
-@inject NavigationManager NavigationManager
+@using Prode2022Server.Services
 @inject IGenericListNotifier<FixtureMatch> ListNotifier
 @inject ISnackbar Snackbar
+@inject DataAdminServices dataAdminService
 
 @if (MatchsList == null || MatchsList.Count == 0)
 {
@@ -44,7 +44,8 @@ else
             <MudIconButton 
                 Icon="@Icons.Material.Filled.Delete" 
                 aria-label="delete"
-                OnClick="() => DeleteRow(context)" />
+                OnClick="() => DeleteRow(context)" 
+                Disabled="DeleteDisabled"/>
         </MudTd>
     </RowTemplate>
 </MudTable>
@@ -71,6 +72,7 @@ else
         bool Loading = true;
         private MudTable<FixtureMatch>? MatchsTable;
         int selectedId = -1;
+        private bool DeleteDisabled= false;
         protected override async Task OnInitializedAsync()
         {
             await LoadMatches();
@@ -86,7 +88,8 @@ else
         public async Task LoadMatches()
         {
             Loading = true;
-            MatchsList = await HttpClient.GetFromJsonAsync<List<FixtureMatch>>(NavigationManager.BaseUri + "DataAdmin/GetAllMatchs")??new();
+            await InvokeAsync(StateHasChanged);
+            MatchsList = await dataAdminService.GetAllMatchsAsync();
             Loading = false;
             await InvokeAsync(StateHasChanged);
         }
@@ -130,8 +133,10 @@ else
 
         private async void DeleteRow(FixtureMatch c)
         {
-            var response = await HttpClient.PostAsJsonAsync<FixtureMatch>(NavigationManager.BaseUri + "DataAdmin/DeleteFixtureMatch",c);
-            if (!response.IsSuccessStatusCode)
+            DeleteDisabled = true;
+            await InvokeAsync(StateHasChanged);
+            var result = await dataAdminService.DeleteFixtureMatchAsync(c);
+            if (!result)
             {
                 Snackbar.Add("No se elimino la fila",Severity.Error);
             }
@@ -139,7 +144,8 @@ else
             {
                 Snackbar.Add("Fila eliminada correctamente",Severity.Info);
             }
-
+            DeleteDisabled = false;
+            await InvokeAsync(StateHasChanged);
             await ListNotifier.ChangeRow(null);
             await LoadMatches();
         }

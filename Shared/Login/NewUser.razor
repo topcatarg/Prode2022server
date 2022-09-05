@@ -1,6 +1,6 @@
 @using Models
-@inject NavigationManager NavigationManager
-@inject HttpClient HttpClient
+@using Prode2022Server.Services
+@inject SecurityServices securityServices
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 
@@ -96,17 +96,18 @@
     public async Task CreateUser()
     {
         ButtonDisabled = true;
+        await InvokeAsync(StateHasChanged);
         //Call the create user method
-        var response = await HttpClient.PostAsJsonAsync<NewUserData>(NavigationManager.BaseUri + "Security/CreateUser",user);
-        if (!response.IsSuccessStatusCode)
+        var result = await securityServices.CreateUserAsync(user);
+        if (!result)
         {
-            Snackbar.Add("No se agrego el registro",Severity.Error);
+            Snackbar.Add("No se creo el usuario",Severity.Error);
             ButtonDisabled = false;
         }
         else
         {
-            Snackbar.Add("Registro agregado",Severity.Info);
-            NavigationManager.NavigateTo("\\");
+            Snackbar.Add("Usuario creado",Severity.Info);
+            NavigationManager.NavigateTo("\\Login");
         }
         //redirect to main page if created ok
     }

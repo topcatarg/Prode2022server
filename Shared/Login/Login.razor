@@ -1,6 +1,7 @@
 @using Models
 @using Prode2022Server.Security
-@inject HttpClient HttpClient
+@using Prode2022Server.Services
+@inject SecurityServices securityServices
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -75,28 +76,21 @@
     public async Task TryLogin()
     {
         ButtonDisabled = true;
+        await InvokeAsync(StateHasChanged);
         //Call the login method
-        var response = await HttpClient.PostAsJsonAsync<UserLogin>(NavigationManager.BaseUri + "Security/LoginUser",userLogin);
-        if (!response.IsSuccessStatusCode)
+        var UserState = await securityServices.CheckUserAsync(userLogin);
+        if (!UserState.LoggedIn)
         {
-            
-            Snackbar.Add("Error al hacer la llamada",Severity.Error);
+            Snackbar.Add("Sus datos de acceso son incorrectos",Severity.Info);
+            ButtonDisabled = false;
+            await InvokeAsync(StateHasChanged);
+            return;
         }
-        else
-        {
-            var result = await response.Content.ReadFromJsonAsync<UserLogin>();
-            if (result == null || !result.LoggedIn)
-            {
-                Snackbar.Add("pass mala",Severity.Info);
-            }
-            else
-            {
-                //login user
-                await ((CustomAuthProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(result);
-            }
-            
-            
-        }
+        //Generate the jwt tokens
+        UserState.AccessToken = securityServices.GenerateAccessToken(UserState);
+        var RefreshToken = await securityServices.GenerateRefreshToken(UserState.Id);
+        UserState.RefreshToken = RefreshToken.Token;
+        await ((CustomAuthProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(UserState);
         ButtonDisabled = false;
         //redirect to main page
         NavigationManager.NavigateTo("\\", true);

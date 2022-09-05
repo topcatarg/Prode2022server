@@ -2,8 +2,6 @@
 @using MudBlazor
 @using System.ComponentModel.DataAnnotations
 @using Prode2022Server.Services
-@inject HttpClient HttpClient
-@inject NavigationManager NavigationManager
 @inject IGenericListNotifier<FixtureMatch> GenericNotifier
 @inject ISnackbar Snackbar
 @inject DataAdminServices dataAdminServices
@@ -84,8 +82,9 @@
     public async Task Add()
     {
         ButtonDisabled = true;
-        var response = await HttpClient.PostAsJsonAsync<FixtureMatch>(NavigationManager.BaseUri + "DataAdmin/UpSertFixtureMatch",ActiveMatch);
-        if (!response.IsSuccessStatusCode)
+        await InvokeAsync(StateHasChanged);
+        var result = await dataAdminServices.UpSertFixtureMatchAsync(ActiveMatch);
+        if (!result)
         {
             Snackbar.Add("No se agrego el registro",Severity.Error);
         }
@@ -97,8 +96,8 @@
         ActiveMatch = new();
         await GenericNotifier.ChangeData();
         ButtonText = "Agregar";
-        StateHasChanged();
         ButtonDisabled = false;
+        await InvokeAsync(StateHasChanged);
     }
 
     public async Task DataValidated()
@@ -135,7 +134,7 @@
         Times = Enumerable.Range(00, 24).Select(i => (i*100).ToString("00:00")).ToList<string>();
         //Get the country list
         CountryList = await dataAdminServices.GetAllTournamentTeamsAsync();
-        GroupList = await HttpClient.GetFromJsonAsync<List<FixtureGroups>>(NavigationManager.BaseUri + "DataAdmin/GetAllFixtureGroups")??new();
+        GroupList = await dataAdminServices.GetAllFixtureGroupsAsync();
         GenericNotifier.NotifyDataControl += OnNotify;
     }
 

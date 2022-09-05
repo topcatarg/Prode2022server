@@ -29,7 +29,7 @@ namespace Prode2022Server.Security
 
                 if (accessToken != null && accessToken != string.Empty)
                 {
-                    UserLogin user = await securityServices.GetUserByAccessTokenAsync(accessToken);
+                    UserLogin user = securityServices.GetUserByAccessToken(accessToken);
                     if (user.IsExpired)
                     {
                         //get user from refresh token
