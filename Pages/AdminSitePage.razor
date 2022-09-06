@@ -11,8 +11,12 @@
     }
     else
     {
-        <MudPaper>
+        <MudPaper class="ma-2">
             Hora del servidor: @CurrentTime
+        </MudPaper>
+        <MudPaper class="ma-2">
+            <MudText>Modificar la diferencia horaria</MudText>
+            <MudNumericField Max=12 Min=-12/>
         </MudPaper>
         <MudPaper>
             <MudButton>Cerrar torneos</MudButton>
