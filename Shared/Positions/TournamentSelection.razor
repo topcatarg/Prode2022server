@@ -15,7 +15,8 @@
     else
     {
         <MudSelect 
-            @bind-Value="TournamentSelected"
+            Value=TournamentSelected
+            ValueChanged=OnComboChanged
             Label="Selecciona el torneo que queres ver"
             T="int"
             >
@@ -33,21 +34,7 @@
     ClaimsPrincipal? user;
     int UserId = 0;
     List<UserTournament> userTournament = new();
-    private int tournamentSelected;
-    int TournamentSelected {  
-        get
-        {
-            return tournamentSelected;
-        }  
-        set
-        {
-            if (tournamentSelected != value)
-            {
-                tournamentSelected = value;
-                OnComboChanged();
-            }
-        } 
-    }
+    int TournamentSelected {get;set;}
 
     protected override async Task OnInitializedAsync()
     {
@@ -56,7 +43,7 @@
         userTournament = await tournamentServices.GetUserTournamentsAsync(UserId);
         if (userTournament.Count> 0)
         {
-            TournamentSelected = userTournament[0].TournamentId;
+            await OnComboChanged( userTournament[0].TournamentId);
         }
         await InvokeAsync(() =>
         {
@@ -64,10 +51,11 @@
         }); 
     }
 
-    private async Task OnComboChanged()
+    private async Task OnComboChanged(int Value)
     {
+        TournamentSelected = Value;
         GenericNotifier.data = new() {
-            TournamentID = tournamentSelected
+            TournamentID = TournamentSelected
         };
         await GenericNotifier.ChangeData();
     }
