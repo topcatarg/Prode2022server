@@ -16,7 +16,12 @@
         </MudPaper>
         <MudPaper class="ma-2">
             <MudText>Modificar la diferencia horaria</MudText>
-            <MudNumericField Max=12 Min=-12/>
+            <MudNumericField 
+                T=int 
+                Max=12 
+                Min=-12 
+                Value=TimeDifference 
+                ValueChanged=TimeDifferenceChange />
         </MudPaper>
         <MudPaper>
             <MudButton>Cerrar torneos</MudButton>
@@ -32,6 +37,32 @@
 {
     private bool Working = false;
     private DateTime CurrentTime = DateTime.Now;
+    private int TimeDifference = 0;
+    private Timer? StoreTimeDifferenceTimer = null;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+    private async Task TimeDifferenceChange(int Value)
+    {
+        if (StoreTimeDifferenceTimer == null)
+        {
+            StoreTimeDifferenceTimer = new(TimerDifferenceClick, null, 1000, Timeout.Infinite);
+        }
+        else
+        {
+
+        }
+
+    }
+
+    private void TimerDifferenceClick(Object? state)
+    {
+
+    }
 
     private async Task CleanRefreshTokens()
     {
