@@ -79,9 +79,6 @@
     int UserId = 0;
     ImmutableArray<Match> MatchList = new();
     bool Loading = true;
-
-    int UserSelectedTeam = 0;
-    ImmutableArray<UserTeam> UserTeams;
     protected override async Task OnInitializedAsync()
     {
         user = (await authenticationStateTask).User;

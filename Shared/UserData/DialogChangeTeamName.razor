@@ -9,7 +9,7 @@
 </MudDialog>
 
 @code {
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
     [Parameter] public string TeamName {get;set;} = "";
     void Submit() => MudDialog.Close(DialogResult.Ok(TeamName));
     void Cancel() => MudDialog.Cancel();

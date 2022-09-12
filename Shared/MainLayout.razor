@@ -47,7 +47,7 @@
 
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; } = default!;
-    ClaimsPrincipal user;
+    ClaimsPrincipal user = default!;
 
     string UserName = "";
 

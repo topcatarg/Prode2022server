@@ -1,6 +1,8 @@
 ﻿@page "/AdminSite"
 @using Prode2022Server.Services
+@using Prode2022Server.Models.AdminSite
 @inject AdminSiteServices adminSiteServices
+@inject ISnackbar Snackbar
 
 @attribute [Authorize(Policy = "ProfileIsAdmin")]
 
@@ -11,8 +13,15 @@
     }
     else
     {
-        <MudPaper>
+        <MudPaper class="ma-2">
             Hora del servidor: @CurrentTime
+        </MudPaper>
+        <MudPaper class="ma-2">
+            <MudText>Modificar la diferencia horaria</MudText>
+            <MudNumericField Max=12 Min=-12 
+                Value=int.Parse(TimeDifference.Data) 
+                T=int 
+                ValueChanged=TimeDifferenceChanged/>
         </MudPaper>
         <MudPaper>
             <MudButton>Cerrar torneos</MudButton>
@@ -28,6 +37,13 @@
 {
     private bool Working = false;
     private DateTime CurrentTime = DateTime.Now;
+    private SiteData TimeDifference = new();
+    private Timer? StoreTimeDifferenceTimer = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        TimeDifference = await adminSiteServices.GetAdminSiteData(SiteDataEnum.TimeDifference);
+    }
 
     private async Task CleanRefreshTokens()
     {
@@ -41,4 +57,33 @@
         Working = State;
         await InvokeAsync(StateHasChanged);
     }
+
+    private void TimeDifferenceChanged(int value)
+    {
+        TimeDifference.Data = value.ToString();
+        if (StoreTimeDifferenceTimer == null)
+        {
+            StoreTimeDifferenceTimer = new(TimerDifferenceClick, null, 1000, Timeout.Infinite);
+        }
+        else
+        {
+            StoreTimeDifferenceTimer.Change(1000,Timeout.Infinite);
+        }
+    }
+
+    private async void TimerDifferenceClick(Object? state)
+    {
+        var result = await adminSiteServices.StoreTimeDifferenceAsync(int.Parse(TimeDifference.Data));
+        if (result)
+        {
+            Snackbar.Add($"Se modifico el tiempo a {TimeDifference.Data}",Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Ocurrio un error",Severity.Error);
+        }
+        StoreTimeDifferenceTimer!.Dispose();
+        StoreTimeDifferenceTimer = null;
+    }
+    
 }
