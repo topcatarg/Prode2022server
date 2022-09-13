@@ -2,7 +2,7 @@
 @using Prode2022Server.Services
 @using System.Collections.Immutable 
 @using System.Security.Claims
-@using Prode2022Server.Helpers;
+@using Prode2022Server.Helpers
 @inject ForecastService forecastService
 @inject IGenericListNotifier<FiltersNotifier> GenericNotifier
 @inject ISnackbar Snackbar
@@ -14,13 +14,14 @@
     }
     else
     {
-        <MudContainer class="pa-2">
-            <MudText Align="Align.Right">
-                <MudIconButton 
-                            Icon="@Icons.TwoTone.Save" 
-                            aria-label="Guardar"
-                            Color="Color.Primary"/>
-            </MudText>
+        <MudContainer class="pa-2 d-flex justify-end">
+            <MudContainer class="d-flex  align-self-center justify-end" >Guardar todo</MudContainer>
+            <MudIconButton 
+                        Icon="@Icons.TwoTone.Save" 
+                        aria-label="Guardar"
+                        Color="Color.Primary"
+                        OnClick="() => StoreAllResults()"
+                        Disabled=StoreAllDisabled/>
         </MudContainer>
         <MudContainer class="pa-4">
             <MudTable Items="@MatchList" Hover="true" Breakpoint="Breakpoint.Sm" 
@@ -28,40 +29,78 @@
                 LoadingProgressColor="Color.Info"
                 T="Match"
                 Dense="true">
+                <ColGroup>
+                    <col style="width: 5%"/>
+                    <col style="width: 5%"/>
+                    <col style="width: 10%"/>
+                    <col style="width: 20%"/>
+                    <col style="width: 35%"/>
+                    <col style="width: 20%"/>
+                    <col style="width: 5%"/>
+                </ColGroup>
                 <HeaderContent>
-                    <MudTh>Grupo</MudTh>
-                    <MudTh>Equipo</MudTh>
-                    <MudTh>Fecha</MudTh>
-                    <MudTh>Equipo</MudTh>
-                    <MudTh>Equipo</MudTh>
+                    <MudTh Style="text-align:center" >Grupo</MudTh>
+                    <MudTh Style="text-align:center">Tu equipo</MudTh>
+                    <MudTh Style="text-align:center">Fecha</MudTh>
+                    <MudTh Style="text-align:center">Equipo</MudTh>
+                    <MudTh Style="text-align:center">Resultado</MudTh>
+                    <MudTh Style="text-align:center">Equipo</MudTh>
                     <MudTh>Guardar</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd >@context.StageName</MudTd>
-                    <MudTd >@context.MyTeamName</MudTd>
-                    <MudTd >@context.Date</MudTd>
                     <MudTd >
-                        <MudPaper class="d-flex flex-row flex-grow-1 gap-4" Elevation="0">
-                            <MudText>@context.Team1Name</MudText>
-                            <MudImage Class="rounded-lg" Src="@($"Images/{@context.Team1Flag}.png")"/>
-                            <MudNumericField Disabled="@context.Closed" @bind-Value="@context.Team1Goals" Variant="Variant.Text" Min="0" Max="100" />
-                        </MudPaper>
+                        <MudHidden Breakpoint=Breakpoint.SmAndDown>
+                            @context.StageName
+                        </MudHidden>
                     </MudTd>
                     <MudTd >
-                        <MudPaper class="d-flex flex-row flex-grow-1 gap-4" Elevation="0">
-                            <MudNumericField Disabled="@context.Closed" @bind-Value="@context.Team2Goals" Variant="Variant.Text" Min="0" Max="100" />
-                            <MudText>@context.Team2Name</MudText>
-                            <MudImage Class="rounded-lg" Src="@($"Images/{@context.Team2Flag}.png")"/>
-                        </MudPaper>
+                        <MudHidden Breakpoint=Breakpoint.SmAndDown>
+                            @context.MyTeamName
+                        </MudHidden>
                     </MudTd>
                     <MudTd >
+                        <MudHidden Breakpoint=Breakpoint.SmAndDown>
+                            @context.Date
+                        </MudHidden>
+                    </MudTd>
+                    <MudTd DataLabel="Equipo">
+                        <MudContainer class="d-flex  align-self-center" >
+                            @context.Team1Name
+                            <MudImage 
+                                Class="rounded-lg ml-2" 
+                                Src="@($"Images/{@context.Team1Flag}.png")"/>
+                        </MudContainer>
+                    </MudTd>
+                    <MudTd DataLabel="Resultado">
+                        <MudContainer class="d-flex flex-row">
+                            <MudNumericField 
+                                Margin="Margin.Dense"
+                                Disabled="@context.Closed"
+                                @bind-Value=context.Team1Goals
+                                Variant="Variant.Text" 
+                                Min="0" 
+                                Max="100" />
+                            <MudNumericField
+                                Margin="Margin.Dense" 
+                                Disabled="@context.Closed" 
+                                @bind-Value="@context.Team2Goals" Variant="Variant.Text" Min="0" Max="100" />
+                        </MudContainer>
+                    </MudTd>
+                    <MudTd DataLabel="Equipo">
+                        <MudContainer class="d-flex  align-self-center" >
+                            <MudImage Class="rounded-lg mr-2" Src="@($"Images/{@context.Team2Flag}.png")"/>
+                            @context.Team2Name
+                        </MudContainer>
+                    </MudTd>
+                    <MudTd DataLabel="Guardar">
                         @if (!context.Closed)
                         {
                             <MudIconButton 
                                 Icon="@Icons.TwoTone.Save" 
                                 aria-label="Guardar"
                                 OnClick="() => StoreResult(context)"
-                                Color="Color.Primary"/>
+                                Color="Color.Primary"
+                                Disabled=!context.Modified||StoreAllDisabled/>
                         }
                     </MudTd>
                 </RowTemplate>
@@ -79,6 +118,7 @@
     int UserId = 0;
     ImmutableArray<Match> MatchList = new();
     bool Loading = true;
+    bool StoreAllDisabled = false;
     protected override async Task OnInitializedAsync()
     {
         user = (await authenticationStateTask).User;
@@ -94,27 +134,62 @@
 
     private async Task StoreResult(Match match)
     {
+        match.Modified = false;
+        await InvokeAsync(StateHasChanged);
         var result = await forecastService.StoreMatchAsync(match);
         if (!result)
         {
             Snackbar.Add("No se actualizo",Severity.Error);
+            match.Modified = true;
         }
         else
         {
             Snackbar.Add("Actualizado correctamente",Severity.Info);
+            match.OriginalTeam1Goals = match.Team1Goals;
+            match.OriginalTeam2Goals = match.Team2Goals;
         }
     }
 
     private async Task ChangeList()
     {
         Loading = true;
+        await InvokeAsync(StateHasChanged);
         //Fill Matches
         var f =  GenericNotifier.data??new();
         MatchList = await forecastService.GetNextMatchesAsync(f, UserId);
+        foreach (var m in MatchList)
+        {
+            m.Modified = false;
+        }
         Loading = false;
         await InvokeAsync(() =>
         {
             StateHasChanged();
         }); 
     }   
+
+    private async Task StoreAllResults()
+    {
+        StoreAllDisabled = true;
+        await InvokeAsync(StateHasChanged);
+        int count = 0;
+        foreach (Match m in MatchList)
+        {
+            if (m.Modified)
+            {
+                var result = await forecastService.StoreMatchAsync(m);
+                if (!result)
+                {
+                    Snackbar.Add("No se actualizo",Severity.Error);
+                    return;
+                }
+                count++;
+                m.Modified = false;
+            }
+        }
+        Snackbar.Add($"Se actualizaron {count} partidos ",Severity.Success);
+        StoreAllDisabled = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
 }
