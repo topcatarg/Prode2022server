@@ -2,67 +2,14 @@
 @using System.Security.Claims
 @using Prode2022Server.Helpers
 @using Prode2022Server.Services
+@inject UserDataServices userDataServices
+@inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <MudContainer class="d-flex flex-column">
-    <EditForm Model="@userData" OnValidSubmit="NameValidated">
-        <DataAnnotationsValidator />
-        <MudContainer class="d-flex flex-row align-content-start">
-            <MudTextField @bind-Value="userData.Name" Label="Tu nombre" Variant="Variant.Text"
-                InputType="InputType.Text" For="@(() => userData.Name)" />
-            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
-                Disabled="@NameButtonDisabled" Class="ma-2">
-                @if (NameButtonDisabled)
-                {
-                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
-                    <MudText Class="ms-2">Procesando</MudText>
-                }
-                else
-                {
-                    <MudText>Guardar</MudText>
-                }
-            </MudButton>
-        </MudContainer>
-    </EditForm>
-    <EditForm Model="@userData" OnValidSubmit="NameValidated">
-        <DataAnnotationsValidator />
-        <MudContainer class="d-flex flex-row align-content-start">
-            <MudTextField @bind-Value="userData.Email" Label="Email" Variant="Variant.Text" InputType="InputType.Text"
-                For="@(() => userData.Email)" />
-            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
-                Disabled="@NameButtonDisabled" Class="ma-2">
-                @if (NameButtonDisabled)
-                {
-                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
-                    <MudText Class="ms-2">Procesando</MudText>
-                }
-                else
-                {
-                    <MudText>Guardar</MudText>
-                }
-            </MudButton>
-        </MudContainer>
-    </EditForm>
-    <EditForm Model="@userData" OnValidSubmit="NameValidated">
-        <DataAnnotationsValidator />
-        <MudContainer class="d-flex flex-row align-content-start">
-            <MudTextField @bind-Value="userData.Password" Label="Contraseña" Variant="Variant.Text"
-                InputType="InputType.Text" For="@(() => userData.Password)" />
-            <MudTextField @bind-Value="userData.RepeatPassword" Label="Repetir Contraseña" Variant="Variant.Text"
-                InputType="InputType.Text" For="@(() => userData.RepeatPassword)" />
-            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
-                Disabled="@NameButtonDisabled" Class="ma-2">
-                @if (NameButtonDisabled)
-                {
-                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
-                    <MudText Class="ms-2">Procesando</MudText>
-                }
-                else
-                {
-                    <MudText>Guardar</MudText>
-                }
-            </MudButton>
-        </MudContainer>
-    </EditForm>
+    <ChangeName userData=userData />
+    <ChangeEmail userData=userData />
+    <ChangePassword userData=userData />
 </MudContainer>
 
 
@@ -72,22 +19,14 @@
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; } = default!;
     ClaimsPrincipal? user;
+    private int UserId;
     private UserLoginData userData { get; set; } = new();
-    private bool NameButtonDisabled = false;
     protected override async Task OnInitializedAsync()
     {
         user = (await authenticationStateTask).User;
-        int UserId = user.GetClaim<int>(ClaimType.Id);
+        UserId = user.GetClaim<int>(ClaimType.Id);
         //Get user data
-
+        userData = await userDataServices.GetUserDataAsync(UserId);
     }
 
-    private async Task UpdateName()
-    {
-
-    }
-    public async Task NameValidated()
-    {
-        await UpdateName();
-    }
 }
