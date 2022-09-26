@@ -1,0 +1,32 @@
+@using Prode2022Server.Models.UserData
+@using System.Security.Claims
+@using Prode2022Server.Helpers
+@using Prode2022Server.Services
+@inject UserDataServices userDataServices
+@inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<MudContainer class="d-flex flex-column">
+    <ChangeName userData=userData />
+    <ChangeEmail userData=userData />
+    <ChangePassword userData=userData />
+</MudContainer>
+
+
+@code
+{
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; } = default!;
+    ClaimsPrincipal? user;
+    private int UserId;
+    private UserLoginData userData { get; set; } = new();
+    protected override async Task OnInitializedAsync()
+    {
+        user = (await authenticationStateTask).User;
+        UserId = user.GetClaim<int>(ClaimType.Id);
+        //Get user data
+        userData = await userDataServices.GetUserDataAsync(UserId);
+    }
+
+}

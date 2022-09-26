@@ -1,0 +1,60 @@
+@using Prode2022Server.Models.UserData
+@using Prode2022Server.Services
+@inject UserDataServices userDataServices
+@inject ISnackbar Snackbar
+
+<EditForm Model="@userEmail" OnValidSubmit="UpdateEmail">
+    <DataAnnotationsValidator />
+    <MudPaper class="d-flex flex-row align-content-start mt-2 pa-2">
+        <MudTextField @bind-Value="userEmail.Email" Label="Email" Variant="Variant.Text" InputType="InputType.Text"
+            For="@(() => userEmail.Email)" />
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
+            Disabled="EmailButtonDisabled || !userEmail.EmailChanged" Class="ma-2">
+            @if (EmailButtonDisabled)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">Procesando</MudText>
+            }
+            else
+            {
+                <MudText>Guardar</MudText>
+            }
+        </MudButton>
+    </MudPaper>
+</EditForm>
+
+@code
+{
+    [Parameter]
+    public UserLoginData userData { get; set; } = new();
+    private UserEmail userEmail { get; set; } = new();
+    private bool EmailButtonDisabled = false;
+
+    protected override Task OnParametersSetAsync()
+    {
+        userEmail.Id = userData.Id;
+        userEmail.Email = userData.Email;
+        userEmail.OriginalEmail = userData.Email;
+        userEmail.EmailChanged = false;
+        return base.OnParametersSetAsync();
+    }
+
+    public async Task UpdateEmail()
+    {
+        EmailButtonDisabled = true;
+        await InvokeAsync(StateHasChanged);
+        bool result = await userDataServices.ChangeUserEmailAsync(userEmail);
+        if (result)
+        {
+            Snackbar.Add("Se actualizo el Email",Severity.Success);
+            userEmail.OriginalEmail = userEmail.Email;
+            userEmail.EmailChanged = false;
+        }
+        else
+        {
+            Snackbar.Add("Hubo un problema al actualizar el Email", Severity.Error);
+        }
+        EmailButtonDisabled = false;
+        await InvokeAsync(StateHasChanged);
+    }
+}

@@ -1,0 +1,69 @@
+@using Prode2022Server.Models.UserData
+@using Prode2022Server.Services
+@inject UserDataServices userDataServices
+@inject ISnackbar Snackbar
+
+<EditForm OnSubmit="NameValidated" EditContext="EditingContext">
+    <DataAnnotationsValidator />
+    <MudPaper class="d-flex flex-row align-content-start mt-2 pa-2">
+        <MudTextField @bind-Value="userName.Name" Label="Tu nombre" Variant="Variant.Text"
+            InputType="InputType.Text" For="@(() => userName.Name)" />
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
+            Disabled="!(EditingContext.Validate() && EditingContext.IsModified())" Class="ma-2">
+            @if (NameButtonDisabled)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">Procesando</MudText>
+            }
+            else
+            {
+                <MudText>Guardar</MudText>
+            }
+        </MudButton>
+    </MudPaper>
+</EditForm>
+
+@code
+{
+
+    [Parameter]
+    public UserLoginData userData { get; set; } = new();
+    private UserName userName {get;set;} = new();
+    private bool NameButtonDisabled = false;
+    private EditContext EditingContext = default!;
+
+    protected override Task OnParametersSetAsync()
+    {
+        userName.Id = userData.Id;
+        userName.Name = userData.Name;
+        EditingContext = new EditContext(userName);
+        return base.OnParametersSetAsync();
+    }
+     
+    private async Task UpdateName()
+    {
+        NameButtonDisabled = true;
+        await InvokeAsync(StateHasChanged);
+        bool result = await userDataServices.ChangeUserNameAsync(userName);
+        if (result)
+        {
+            Snackbar.Add("Se actualizo el nombre",Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Hubo un problema al actualizar el nombre", Severity.Error);
+        }
+        NameButtonDisabled = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task NameValidated()
+    {
+        if (EditingContext.Validate())
+        {
+            await UpdateName();
+        }
+        
+    }
+}
+

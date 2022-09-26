@@ -2,17 +2,15 @@
 @using Prode2022Server.Shared.UserData
 @attribute [Authorize]
 
-<MudText class="pa-4">Tus Datos</MudText> 
-
-<MudTabs Elevation="4" Rounded="true" Centered="true" Color="@Color.Primary">
+<MudTabs class="pa-4" Elevation="4" Rounded="true" Centered="true" Color="@Color.Primary">
     <MudTabPanel Text="Datos">
-        
+        <UserDataControl/>
     </MudTabPanel>
-    <MudTabPanel Text="Torneos">
+    <MudTabPanel Text="Equipos que juegas">
+        <UserTeamAdminEdit/>
+    </MudTabPanel>
+    <MudTabPanel Text="Torneos que administras">
         <TournamentsAdminList/>
         <TournamentsAdminEdit/>
-    </MudTabPanel>
-    <MudTabPanel Text="Equipos">
-        <UserTeamAdminEdit/>
     </MudTabPanel>
 </MudTabs>

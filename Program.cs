@@ -24,6 +24,7 @@ builder.Services.AddSingleton<SettingHelpers>();
 builder.Services.AddScoped<TournamentsServices>();
 builder.Services.AddScoped<UserTournamentsServices>();
 builder.Services.AddScoped<AdminSiteServices>();
+builder.Services.AddScoped<UserDataServices>();
 
 //Add services as DI
 builder.Services.AddSingleton<FixtureService>();
