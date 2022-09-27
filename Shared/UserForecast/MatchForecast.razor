@@ -1,4 +1,5 @@
 ﻿@using Prode2022Server.Models.UserForecast
+@using Prode2022Server.Models.AdminSite
 @using Prode2022Server.Services
 @using System.Collections.Immutable 
 @using System.Security.Claims
@@ -6,6 +7,7 @@
 @inject ForecastService forecastService
 @inject IGenericListNotifier<FiltersNotifier> GenericNotifier
 @inject ISnackbar Snackbar
+@inject AdminSiteServices adminSiteServices
 
 <MudContainer class="pa-4">
     @if(Loading)
@@ -75,14 +77,15 @@
                         <MudContainer class="d-flex flex-row">
                             <MudNumericField 
                                 Margin="Margin.Dense"
-                                Disabled="@context.Closed"
+                                Disabled="(context.Closed || DateTime.Parse(context.Date).AddMinutes(-5).CompareTo(DateTime.Now.AddHours(TimeDifference))<0)"
                                 @bind-Value=context.Team1Goals
                                 Variant="Variant.Text" 
                                 Min="0" 
-                                Max="100" />
+                                Max="100"
+                                 />
                             <MudNumericField
                                 Margin="Margin.Dense" 
-                                Disabled="@context.Closed" 
+                                Disabled="(context.Closed || DateTime.Parse(context.Date).AddMinutes(-5).CompareTo(DateTime.Now.AddHours(TimeDifference))<0)" 
                                 @bind-Value="@context.Team2Goals" Variant="Variant.Text" Min="0" Max="100" />
                         </MudContainer>
                     </MudTd>
@@ -93,7 +96,7 @@
                         </MudContainer>
                     </MudTd>
                     <MudTd DataLabel="Guardar">
-                        @if (!context.Closed)
+                        @if (!context.Closed && (DateTime.Parse(context.Date).AddMinutes(-5).CompareTo(DateTime.Now.AddHours(TimeDifference))>0))
                         {
                             <MudIconButton 
                                 Icon="@Icons.TwoTone.Save" 
@@ -119,10 +122,13 @@
     ImmutableArray<Match> MatchList = new();
     bool Loading = true;
     bool StoreAllDisabled = false;
+    private int TimeDifference = 0;
     protected override async Task OnInitializedAsync()
     {
         user = (await authenticationStateTask).User;
         UserId = user.GetClaim<int>(ClaimType.Id);
+        var data = await adminSiteServices.GetAdminSiteData(SiteDataEnum.TimeDifference);
+        TimeDifference = int.Parse(data.Data);
         GenericNotifier.NotifyList += ChangeList;
         await ChangeList();
     }
@@ -136,7 +142,7 @@
     {
         match.Modified = false;
         await InvokeAsync(StateHasChanged);
-        var result = await forecastService.StoreMatchAsync(match);
+        var result = await forecastService.StoreMatchAsync(match, TimeDifference);
         if (!result)
         {
             Snackbar.Add("No se actualizo",Severity.Error);
@@ -177,13 +183,15 @@
         {
             if (m.Modified)
             {
-                var result = await forecastService.StoreMatchAsync(m);
+                var result = await forecastService.StoreMatchAsync(m, TimeDifference);
                 if (!result)
                 {
-                    Snackbar.Add("No se actualizo",Severity.Error);
-                    return;
+                    Snackbar.Add($"No se actualizo el partido {m.Team1Name} - {m.Team2Name}",Severity.Error);
                 }
-                count++;
+                else
+                {
+                    count++;
+                }
                 m.Modified = false;
             }
         }

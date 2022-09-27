@@ -97,8 +97,13 @@ where UserId = @userId",
         return v.ToImmutableArray();
     }
 
-    public async Task<bool> StoreMatchAsync(Match match)
+    public async Task<bool> StoreMatchAsync(Match match, int TimeDifference)
     {
+        //Compare time first!!!
+        if (DateTime.Parse(match.Date).AddMinutes(-5).CompareTo(DateTime.Now.AddHours(TimeDifference))<=0)
+        {
+            return false;
+        }
         using var db = _dbService.SimpleDbConnection();
         var result = await db.ExecuteAsync(@"
 update UserForecast set 

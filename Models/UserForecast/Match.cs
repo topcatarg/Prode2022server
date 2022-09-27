@@ -50,6 +50,7 @@ public class Match
 
     public string StageName { get; set; } = "";
     public string Date { get; set; } = "";
+
     public bool Modified { get; set; } = false;
 
 }
