@@ -10,6 +10,11 @@
     @if (Working)
     {
         <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+        <MudProgressLinear Color="Color.Primary" 
+                Value="@MatchProgress" 
+                Class="my-7" 
+                Min=0
+                Max=QuantityOfMatchs/>
     }
     else
     {
@@ -23,9 +28,11 @@
                 T=int 
                 ValueChanged=TimeDifferenceChanged/>
         </MudPaper>
+        <MudPaper class="ma-2">
+            <MudButton OnClick=CalculateMatchs>Calcular partidos</MudButton>
+        </MudPaper>
         <MudPaper>
             <MudButton>Cerrar torneos</MudButton>
-            <MudButton>Calcular partidos</MudButton>
             <MudButton OnClick="CleanRefreshTokens">Limpiar tokens vencidos</MudButton>
             <MudButton>Blaquear password</MudButton>
             <MudButton>Diferencia horaria</MudButton>
@@ -39,12 +46,29 @@
     private DateTime CurrentTime = DateTime.Now;
     private SiteData TimeDifference = new();
     private Timer? StoreTimeDifferenceTimer = null;
-
+    private int MatchProgress=0;
+    private int QuantityOfMatchs=0;
     protected override async Task OnInitializedAsync()
     {
         TimeDifference = await adminSiteServices.GetAdminSiteData(SiteDataEnum.TimeDifference);
+        adminSiteServices.NotifyProgress += OnProgress;
     }
 
+    private async Task CalculateMatchs()
+    {
+        await WorkingState(true);
+        QuantityOfMatchs = 90;
+        await adminSiteServices.CalculateMatchs();
+        Snackbar.Add($"Se calcularon todos los partidos",Severity.Success);
+        MatchProgress = 0;
+        await WorkingState(false);
+    }
+
+    private async Task OnProgress()
+    {
+        MatchProgress = adminSiteServices.CalculateState;
+        await WorkingState(true);
+    }
     private async Task CleanRefreshTokens()
     {
         await WorkingState(true);
