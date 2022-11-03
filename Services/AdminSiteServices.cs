@@ -103,13 +103,8 @@ Where TeamId = @TeamId and MatchId = @matchid", new
             }
 
         }
+        return "";
         //Calculate totals for every user
-        for (int i = 0; i < 10; i++)
-        {
-            await Task.Delay(1000);
-            CalculateState = i * 10;
-            await CallProgress();
-        }
     }
 
     private async Task CallProgress()

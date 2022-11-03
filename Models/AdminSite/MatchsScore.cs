@@ -7,4 +7,6 @@ public class MatchsScore
     public int TeamId { get; set; }
 
     public int Score { get; set; }
+
+    public int ScorePerGame { get; set;}
 }
