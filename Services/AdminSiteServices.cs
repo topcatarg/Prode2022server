@@ -81,30 +81,69 @@ where closed = 1) m inner join UserForecast uf on m.id = uf.MatchId")).ToImmutab
         CalculateMatchsNotes = "Obteniendo lista a actualizar";
         MaxState = 1;
         await CallProgress();
-        var ResultsToUpdate = results.Where(x => x.Score != x.ScorePerGame).ToImmutableList();
         CalculateState = 0;
         CalculateMatchsNotes = "Actualizando partidos de los usuarios";
-        MaxState = ResultsToUpdate.Count();
+        MaxState = results.Count();
+        int percent = MaxState / 10;
+        int CalculatingBase = percent;
+        int ItemCount = 0;
         await CallProgress();
-        foreach (var r in ResultsToUpdate)
+        foreach (var r in results)
         {
-            var rest = await db.ExecuteAsync(@"
+            if (r.Score != r.ScorePerGame)
+            {
+                var rest = await db.ExecuteAsync(@"
 Update UserForecast 
 Set ScorePerGame = @score
 Where TeamId = @TeamId and MatchId = @matchid", new
-            {
-                r.Score,
-                r.TeamId,
-                matchid = r.Id
-            });
-            if (rest == 0)
-            {
-                return "Hubo un error calculando";
+                {
+                    score = r.Score,
+                    TeamId = r.TeamId,
+                    matchid = r.Id
+                });
+                if (rest == 0)
+                {
+                    return "Hubo un error calculando";
+                }
             }
-
+            if (ItemCount == CalculatingBase)
+            {
+                CalculateState = CalculatingBase;
+                CalculatingBase += percent;
+                await CallProgress();
+            }
+            ItemCount++;
+        }
+        //Calculate totals for every user
+        CalculateState = 0;
+        CalculateMatchsNotes = "Actualizando totales de los equipos de los usuarios";
+        MaxState = results.Count();
+        await CallProgress();
+        var scores = await db.QueryAsync<UserScores>(@"
+select TeamId, sum(scorepergame) as Score
+from UserForecast
+group by TeamId");
+        MaxState = scores.Count();
+        await CallProgress();
+        ItemCount = 0;
+        foreach (var s in scores)
+        {
+            var r = await db.ExecuteAsync(@"
+Update TournamentsUserTeams
+Set Score = @Score
+Where UserTeamId = @TeamId", new
+            {
+                s.Score,
+                s.TeamId
+            });
+            if (r == 0)
+            {
+                return "Error al actualizar el usuario";
+            }
+            await CallProgress();
+            CalculateState++;
         }
         return "";
-        //Calculate totals for every user
     }
 
     private async Task CallProgress()

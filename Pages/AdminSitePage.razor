@@ -10,6 +10,7 @@
     @if (Working)
     {
         <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+        <MudText>@Message</MudText>
         <MudProgressLinear Color="Color.Primary" 
                 Value="@MatchProgress" 
                 Class="my-7" 
@@ -48,6 +49,7 @@
     private Timer? StoreTimeDifferenceTimer = null;
     private int MatchProgress=0;
     private int QuantityOfMatchs=0;
+    string Message = "";
     protected override async Task OnInitializedAsync()
     {
         TimeDifference = await adminSiteServices.GetAdminSiteData(SiteDataEnum.TimeDifference);
@@ -57,7 +59,6 @@
     private async Task CalculateMatchs()
     {
         await WorkingState(true);
-        QuantityOfMatchs = 90;
         await adminSiteServices.CalculateMatchs();
         Snackbar.Add($"Se calcularon todos los partidos",Severity.Success);
         MatchProgress = 0;
@@ -67,6 +68,8 @@
     private async Task OnProgress()
     {
         MatchProgress = adminSiteServices.CalculateState;
+        QuantityOfMatchs = adminSiteServices.MaxState;
+        Message = adminSiteServices.CalculateMatchsNotes;
         await WorkingState(true);
     }
     private async Task CleanRefreshTokens()
