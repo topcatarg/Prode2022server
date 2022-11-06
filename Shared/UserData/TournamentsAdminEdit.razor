@@ -67,6 +67,38 @@
     public async Task Add()
     {
         ButtonDisabled = true;
+        if (tournament.Id != 0)
+        {
+            //update
+            await UpdateTournament();
+        }
+        else
+        {
+            //add
+            await AddTournament();
+        }
+        tournament = new();
+        await GenericNotifier.ChangeData();
+        ButtonText = "Agregar";
+        StateHasChanged();
+        ButtonDisabled = false;
+    }
+
+    private async Task UpdateTournament()
+    {
+        string response = await tournamentsServices.UpdateTournamentAsync(tournament);
+        if (!response.IsNullOrEmpty())
+        {
+            Snackbar.Add(response, Severity.Error);
+        }
+        else
+        {
+            Snackbar.Add("Registro actualizado", Severity.Info);
+        }
+    }
+
+    private async Task AddTournament()
+    {
         tournament.AdministratorId = UserId;
         string response = await tournamentsServices.CreateTournaments(tournament);
         if (!response.IsNullOrEmpty())
@@ -77,11 +109,7 @@
         {
             Snackbar.Add("Registro agregado",Severity.Info);
         }
-        tournament = new();
-        await GenericNotifier.ChangeData();
-        ButtonText = "Agregar";
-        StateHasChanged();
-        ButtonDisabled = false;
+        
     }
 
     public async Task OnNotify()
