@@ -1,6 +1,7 @@
 ﻿@page "/AdminSite"
 @using Prode2022Server.Services
 @using Prode2022Server.Models.AdminSite
+@using System.Collections.Immutable;
 @inject AdminSiteServices adminSiteServices
 @inject ISnackbar Snackbar
 
@@ -32,10 +33,19 @@
         <MudPaper class="ma-2">
             <MudButton OnClick=CalculateMatchs>Calcular partidos</MudButton>
         </MudPaper>
+        <MudPaper class="ma-2">
+            <MudSelect Label="Usuario" @bind-Value="ActiveUser.Id">
+                @foreach (Users u in UserList)
+                {
+                    <MudSelectItem value="@u.Id" T="int">@u.UserEmail</MudSelectItem>
+                }
+            </MudSelect>
+            <MudButton OnClick="UserPasswordBlank">Blaquear password</MudButton>
+        </MudPaper>
         <MudPaper>
             <MudButton>Cerrar torneos</MudButton>
             <MudButton OnClick="CleanRefreshTokens">Limpiar tokens vencidos</MudButton>
-            <MudButton>Blaquear password</MudButton>
+            
             <MudButton>Diferencia horaria</MudButton>
         </MudPaper>
     }
@@ -50,9 +60,14 @@
     private int MatchProgress=0;
     private int QuantityOfMatchs=0;
     string Message = "";
+    ImmutableList<Users> UserList = ImmutableList<Users>.Empty;
+    Users ActiveUser = new();
+
     protected override async Task OnInitializedAsync()
     {
         TimeDifference = await adminSiteServices.GetAdminSiteData(SiteDataEnum.TimeDifference);
+        UserList = await adminSiteServices.GetUsersListAsync();
+        ActiveUser.Id = UserList[0].Id;
         adminSiteServices.NotifyProgress += OnProgress;
     }
 
@@ -111,6 +126,12 @@
         }
         StoreTimeDifferenceTimer!.Dispose();
         StoreTimeDifferenceTimer = null;
+    }
+
+    private async void UserPasswordBlank()
+    {
+        string Message = await adminSiteServices.BlankUserPasswordAsync(ActiveUser.Id);
+        Snackbar.Add($"Se blanqueo la pass del usuario", Severity.Success);
     }
     
 }
