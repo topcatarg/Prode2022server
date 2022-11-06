@@ -11,6 +11,12 @@
     {
         <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
     }
+    else if(!UserHasTeams)
+    {
+       <MudText> No tienes equipos inscriptos en torneos. 
+        Crea un equipo dentro de tus datos -> equipos que juegas e inscribite en algun torneo.
+        </MudText>
+    }
     else
     {
         <MudExpansionPanels >
@@ -77,12 +83,15 @@
     ClaimsPrincipal? user;
     int UserId = 0;
     FiltersNotifier currentFilters = new();
+    bool UserHasTeams = true;
+
     protected override async Task OnInitializedAsync()
     {
         user = (await authenticationStateTask).User;
         UserId = user.GetClaim<int>(ClaimType.Id);
         UserTeams = await forecastService.GetUserTeamsAsync(UserId);
         groupList = await forecastService.GetFixtureGroupsAsync();
+        UserHasTeams = UserTeams.Length > 0;
         await InvokeAsync(() =>
         {
             StateHasChanged();
