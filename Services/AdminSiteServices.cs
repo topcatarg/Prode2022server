@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Data.Sqlite;
 using System.Collections.Immutable;
+using Prode2022Server.Models.UserData;
+
 public class AdminSiteServices
 {
 
@@ -152,5 +154,42 @@ Where UserTeamId = @TeamId", new
         {
             await NotifyProgress.Invoke();
         }
+    }
+
+    public async Task<ImmutableList<Users>> GetUsersListAsync()
+    {
+        using SqliteConnection db = database.SimpleDbConnection();
+        var v = await db.QueryAsync<Users>(@"
+Select Id,Email as UserEmail
+from Users
+order by Email"
+            );
+        return v.ToImmutableList<Users>();
+    }
+
+    public async Task<string> BlankUserPasswordAsync(int UserId)
+    {
+        using SqliteConnection db = database.SimpleDbConnection();
+        string PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456789");
+        var result = await db.ExecuteAsync(@"
+update Users 
+set Password = @Password
+where Id = @UserId",
+            new
+            {
+                Password = PasswordHash,
+                UserId = UserId
+            });
+        if (result > 0)
+        {
+            result = await db.ExecuteAsync(@"
+Delete from RefreshTokens
+where UserId = @UserId",
+                new
+                {
+                    UserId = UserId
+                });
+        }
+        return "";
     }
 }
