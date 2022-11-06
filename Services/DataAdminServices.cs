@@ -3,6 +3,8 @@ using Prode2022Server.Models;
 using Dapper;
 using Microsoft.Data.Sqlite;
 using System.Linq;
+using Microsoft.VisualBasic;
+using Prode2022Server.Shared.IndexControls;
 
 namespace Prode2022Server.Services
 {
@@ -253,7 +255,8 @@ coalesce(Team1Goals,0) as Team1Goals,
 coalesce(Team2Goals,0) as Team2Goals,
 (select name from fixturegroupsname f where f.id = m.stage) as Stagename,
 (select Team from Teams t where t.id = m.team1) as Team1Name,
-(select Team from Teams t where t.id = m.team2) as Team2Name
+(select Team from Teams t where t.id = m.team2) as Team2Name,
+Closed
 from Matches m
 order by date"
             );
@@ -273,6 +276,21 @@ where id = @id",
                     id = matchResult.Id,
                     Team1Goals = matchResult.Team1Goals,
                     Team2Goals = matchResult.Team2Goals,
+                });
+            return result > 0;
+        }
+
+        public async Task<bool> CloseMatchAsync(MatchResult match)
+        {
+            using SqliteConnection db = database.SimpleDbConnection();
+            var result = await db.ExecuteAsync(@"
+update matches set
+    Closed = @state
+where id = @id",
+                new
+                {
+                    state = match.Closed,
+                    id = match.Id
                 });
             return result > 0;
         }
