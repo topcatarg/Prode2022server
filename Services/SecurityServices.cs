@@ -181,6 +181,10 @@ where Id = (
                 Token,
                 date = DateTime.UtcNow
             });
+            if (newUser == null)
+            {
+                newUser = new();
+            }
             if (newUser.Email != null)
             {
                 newUser.LoggedIn = true;
