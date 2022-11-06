@@ -68,6 +68,35 @@ values
         return "";
     }
 
+    public async Task<string> UpdateTournamentAsync(Tournament tournament)
+    {
+        using SqliteConnection db = database.SimpleDbConnection();
+        int result = 0;
+        try
+        {
+            result = await db.ExecuteAsync(@"
+update tournaments
+set Name = @Name,
+    Password = @Password
+where
+    Id = @Id
+",
+                new
+                {
+                    tournament.Name,
+                    tournament.Password,
+                    tournament.Id
+                });
+        }
+        catch
+        { }
+        if (result == 0)
+        {
+            return "Ya existe un torneo con ese nombre";
+        }
+        return "";
+    }
+
     public async Task<string> DeleteTournament(Tournament tournament)
     {
         using SqliteConnection db = database.SimpleDbConnection();
@@ -80,7 +109,7 @@ where TournamentId = @Id
             {
                 tournament.Id
             });
-        if (result >= 0)
+        if (result > 0)
         {
             return "No se puede borrar un torneo con usuarios";
         }    
