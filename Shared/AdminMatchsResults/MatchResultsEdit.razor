@@ -49,6 +49,17 @@ else
                             aria-label="Edit"
                             OnClick="() => context.Editable=true"
                         />
+                        if(!context.Closed)
+                        {
+                            <MudIconButton Icon="@Icons.Material.Filled.AlarmOn"
+                               OnClick="() => CloseMatch(context)" 
+                               />
+                        }
+                        else
+                        {
+                            <MudIconButton Icon="@Icons.Material.Filled.AlarmOff"
+                               OnClick="() => CloseMatch(context)" />
+                        }
                     }
                     else
                     {
@@ -102,4 +113,18 @@ else
         }
     }
 
+    private async Task CloseMatch(MatchResult match)
+    {
+        match.Closed = !match.Closed;
+        var result = await dataAdminServices.CloseMatchAsync(match);
+        if (!result)
+        {
+            Snackbar.Add("No se actualizo", Severity.Error);
+        }
+        else
+        {
+            Snackbar.Add("Actualizado correctamente", Severity.Info);
+        }
+
+    }
 }
